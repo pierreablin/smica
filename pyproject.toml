@@ -1,0 +1,10 @@
+[build-system]
+requires = ["flit"]
+build-backend = "flit.buildapi"
+
+[tool.flit.metadata]
+module = "smica"
+author = "Pierre Ablin"
+author-email = "pierreablin@gmail.com"
+classifiers = ["License :: OSI Approved :: MIT License"]
+
