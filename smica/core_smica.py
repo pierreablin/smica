@@ -9,7 +9,7 @@ from ._em import loss, em_algo
 
 
 class SMICA(object):
-    def __init__(self, covs, q, avg_noise=True, rng=None):
+    def __init__(self, covs, q, avg_noise=False, rng=None):
         '''
         Compute smica decomposition on covs. q is the number of sources.
         '''
