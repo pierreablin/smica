@@ -1,6 +1,27 @@
 import numpy as np
 
 
+def loss(covs, A, sigma, source_powers, avg_noise=True,
+         normalize=False):
+    '''
+    Compute the loss
+    '''
+    loss_value = 0.
+    n_epochs, p, _ = covs.shape
+    for j, (cov, power) in enumerate(zip(covs, source_powers)):
+        if avg_noise:
+            R = A.dot(power[:, None] * A.T) + np.diag(sigma)
+        else:
+            R = A.dot(power[:, None] * A.T) + np.diag(sigma[j])
+        loss_value += cov.dot(np.linalg.inv(R)).trace()
+        loss_value += np.linalg.slogdet(R)[1]
+        if normalize:
+            loss_value -= np.linalg.slogdet(cov)[1]
+    if normalize:
+        loss_value -= p * n_epochs
+    return loss_value
+
+
 def fourier_sampling(X, sfreq, freqs):
     '''
     Computes spectral covariances from the matrix X. sfreq is the

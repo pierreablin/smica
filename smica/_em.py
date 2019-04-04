@@ -3,23 +3,10 @@ from numpy.linalg import norm
 
 from joblib import Memory
 
+from .utils import loss
+
 location = './cachedir'
 memory = Memory(location, verbose=0)
-
-
-def loss(covs, A, sigma, source_powers, avg_noise=True):
-    '''Compute the loss
-    '''
-    loss_value = 0.
-    n_epochs, p, _ = covs.shape
-    for j, (cov, power) in enumerate(zip(covs, source_powers)):
-        if avg_noise:
-            R = A.dot(power[:, None] * A.T) + np.diag(sigma)
-        else:
-            R = A.dot(power[:, None] * A.T) + np.diag(sigma[j])
-        loss_value += cov.dot(np.linalg.inv(R)).trace()
-        loss_value += np.linalg.slogdet(R)[1]
-    return loss_value
 
 
 def invert(weighted_cys, sigmas, c_ss):

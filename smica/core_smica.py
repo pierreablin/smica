@@ -5,7 +5,8 @@ import numpy as np
 
 from sklearn.utils import check_random_state
 
-from ._em import loss, em_algo
+from ._em import em_algo
+from .utils import loss
 
 
 class SMICA(object):
@@ -53,24 +54,13 @@ class SMICA(object):
         self.x_list = x_list
         return self
 
-    def _compute_ld_cov(self):
-        '''
-        compute the sum of logdet of the covariances
-        '''
-        ld_cov = 0.
-        for cov in self.covs:
-            ld_cov += np.linalg.slogdet(cov)[1]
-        self.ld_cov = ld_cov
-        return ld_cov
-
     def true_loss(self):
         '''
         compute the loss rectified with the log det. >=0, =0 if the model
         holds perfectly.
         '''
-        L = loss(self.covs, self.A, self.sigmas, self.powers,
-                 self.avg_noise)
-        return L - self._compute_ld_cov() - self.p * self.n_epochs
+        return loss(self.covs, self.A, self.sigmas, self.powers,
+                    self.avg_noise, normalize=True)
 
     def compute_approx_covs(self):
         '''

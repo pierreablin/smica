@@ -11,7 +11,7 @@ from mne.io import BaseRaw
 from mne.epochs import BaseEpochs
 
 from .core_smica import SMICA
-from .utils import fourier_sampling, itakura
+from .utils import fourier_sampling, itakura, loss
 
 
 def wiener(A, sigmas, powers):
@@ -64,13 +64,23 @@ def transfer_to_ica(raw, picks, freqs, S, A):
 
 
 class ICA(object):
+    '''
+    Mimics some the the mne.preprocessing ICA API.
+    '''
     def __init__(self, n_components, freqs, rng=None):
+        '''
+        n_components : number of sources
+        freqs : the frequency intervals
+        '''
         self.n_components = n_components
         self.freqs = freqs
         self.f_scale = 0.5 * (freqs[1:] + freqs[:-1])
         self.rng = check_random_state(rng)
 
     def fit(self, inst, picks=None, avg_noise=False, **kwargs):
+        '''
+        Fits smica to inst (either raw or epochs)
+        '''
         self.inst = inst
         self.info = inst.info
         self.sfreq = inst.info['sfreq']
@@ -101,7 +111,6 @@ class ICA(object):
             smica.fit(**kwargs)
         else:
             smica = smica_
-        self.smica = smica
         self.A = smica.A
         self.powers = smica.powers
         self.sigmas = smica.sigmas
@@ -190,8 +199,13 @@ class ICA(object):
         S[bad_sources] = 0.
         return np.dot(self.A, S)
 
-    def compute_loss(self):
-        return self.smica.true_loss()
+    def compute_loss(self, X=None):
+        if X is None:
+            covs = self.C
+        else:
+            covs, _, _ = fourier_sampling(X, self.sfreq, self.freqs)
+        return loss(covs, self.A, self.sigmas, self.powers,
+                    self.avg_noise, normalize=True)
 
     def degrees_freedom(self):
         p, m = self.A.shape
