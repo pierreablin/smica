@@ -1,6 +1,8 @@
 import pytest
 import numpy as np
 
+from numpy.testing import assert_allclose
+
 from smica import fourier_sampling, loss
 
 
@@ -14,6 +16,18 @@ def test_fourier():
     assert C.shape == (n_bins, p, p)
     assert ft.shape == (p, n)
     assert idx.shape == (n_bins + 1,)
+
+
+def test_fourier_scale():
+    n_bins = 10
+    sfreq = 20
+    p, n = 2, 1000
+    freqs = np.linspace(1, 10, n_bins+1)
+    X = np.random.randn(p, n)
+    Y = np.concatenate((X, X), axis=1)
+    C1, _, _ = fourier_sampling(X, sfreq, freqs)
+    C2, _, _ = fourier_sampling(Y, sfreq, freqs)
+    assert_allclose(C1, C2)
 
 
 @pytest.mark.parametrize('avg_noise', [True, False])

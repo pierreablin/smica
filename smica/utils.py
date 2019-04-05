@@ -41,7 +41,7 @@ def fourier_sampling(X, sfreq, freqs):
     C = np.zeros((n_bins, p, p))
     for i in range(n_bins):
         sl = np.arange(freq_idx[i], freq_idx[i+1])
-        ft = fourier_transform[:, sl]
+        ft = fourier_transform[:, sl] / np.sqrt(len(sl))
         C[i] = np.real(np.dot(ft, ft.conj().T)) / len(sl)
     return C, fourier_transform, freq_idx
 
