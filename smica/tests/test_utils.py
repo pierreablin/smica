@@ -3,7 +3,7 @@ import numpy as np
 
 from numpy.testing import assert_allclose
 
-from smica import fourier_sampling, loss
+from smica import fourier_sampling, loss, compute_covariances
 
 
 def test_fourier():
@@ -40,10 +40,5 @@ def test_loss(avg_noise):
     else:
         sigmas = np.abs(rng.randn(n_epochs, p))
     powers = np.abs(rng.randn(n_epochs, q))
-    if avg_noise:
-        covs = np.array([np.dot(A, power[:, None] * A.T) + np.diag(sigmas)
-                         for power in powers])
-    else:
-        covs = np.array([np.dot(A, power[:, None] * A.T) + np.diag(sigma)
-                         for power, sigma in zip(powers, sigmas)])
+    covs = compute_covariances(A, powers, sigmas, avg_noise)
     assert loss(covs, A, sigmas, powers, avg_noise, normalize=True) == 0

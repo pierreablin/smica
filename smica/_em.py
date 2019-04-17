@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 from numpy.linalg import norm
 
@@ -10,12 +12,13 @@ memory = Memory(location, verbose=0)
 
 
 def invert(weighted_cys, sigmas, c_ss):
-    '''Used to compute A in the m step
+    '''
+    Used to compute A in the m step
     '''
     p, q = weighted_cys.shape
     inv = np.zeros((p, q))
     for j in range(p):
-        M = np.sum(sigmas[:, j][:, None, None] * c_ss, axis=0)
+        M = np.einsum('i, ijk->jk', sigmas[:, j], c_ss)
         inv[j] = np.linalg.solve(M.T, weighted_cys[j])
     return inv
 
@@ -33,10 +36,11 @@ def m_step(cov_source_source_s, cov_signal_source, cov_signal_signal,
         # update sigma
         for j in range(n_epochs):
             c_si_so = cov_signal_source[j]
-            AR_ys = A.dot(c_si_so.T)
-            sigmas_square[j] =\
-                np.diag(cov_signal_signal[j] - AR_ys - AR_ys.T
-                        + A.dot(cov_source_source_s[j]).dot(A.T))
+            AR_d = np.einsum('ij, ij -> i', A, c_si_so)
+            AcA_d = np.einsum('ij, ij -> i', A,
+                              A.dot(cov_source_source_s[j].T))
+            sigmas_square[j] = np.diag(cov_signal_signal[j]) - 2 * AR_d
+            sigmas_square[j] += AcA_d
         # update A
         weighted_cys = np.zeros((p, q))
         for j in range(n_epochs):
@@ -80,9 +84,9 @@ def e_step(covs, covs_inv, A, sigmas_square, source_powers, avg_noise):
     return cov_source_source_s, cov_signal_source, cov_signal_signal
 
 
-@memory.cache(ignore=['verbose', 'return_iterates'])
+# @memory.cache(ignore=['verbose', 'return_iterates'])
 def em_algo(covs, A, sigmas_square, source_powers, avg_noise,
-            max_iter=1000, verbose=False, return_iterates=False,
+            max_iter=10000, verbose=False, return_iterates=False,
             dA_thresh=1e-4, dS_thresh=1e-6):
     '''
     EM algorithm to fit the SMICA model on the covariances matrices covs
@@ -111,7 +115,7 @@ def em_algo(covs, A, sigmas_square, source_powers, avg_noise,
             if dA < dA_thresh and dS < dS_thresh:
                 break
         if verbose:
-            if (it - 1) % verbose == 0:
+            if (it - 1) % verbose == 0 and it > 0:
                 los = loss(covs, A, sigmas_square, source_powers, avg_noise)
                 print('it {:5d}, loss: {:10.5e}, dloss: {:04.2e}, dA: {:04.2e}'
                       ', dSigma: {:04.2e}, dPowers: {:04.2e}'.format(
@@ -125,4 +129,7 @@ def em_algo(covs, A, sigmas_square, source_powers, avg_noise,
         A_old = A.copy()
         sigmas_old = sigmas_square.copy()
         powers_old = source_powers.copy()
+    else:
+        warnings.warn('Warning, em algorithm did not converge: difference in A'
+                      ' = %.2e, difference in sigma = %.2e.' % (dA, dS))
     return A, sigmas_square, source_powers, x_list

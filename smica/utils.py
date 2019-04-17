@@ -46,6 +46,16 @@ def fourier_sampling(X, sfreq, freqs):
     return C, fourier_transform, freq_idx
 
 
+def compute_covariances(A, powers, sigmas, avg_noise=False):
+    if avg_noise:
+        covs = np.array([np.dot(A, power[:, None] * A.T) + np.diag(sigmas)
+                         for power in powers])
+    else:
+        covs = np.array([np.dot(A, power[:, None] * A.T) + np.diag(sigma)
+                         for power, sigma in zip(powers, sigmas)])
+    return covs
+
+
 def itakura(p1, p2):
     frac = p1 / p2
     return np.mean(frac - np.log(frac) - 1)

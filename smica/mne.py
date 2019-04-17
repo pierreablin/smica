@@ -52,7 +52,8 @@ def transfer_to_ica(raw, picks, freqs, S, A):
     C, ft, freq_idx = fourier_sampling(S, smica.sfreq, freqs)
     Q, _, _ = C.shape
     smica.powers = np.diagonal(C, axis1=1, axis2=2)
-    smica.powers = smica.powers / np.mean(smica.powers, axis=0, keepdims=True)
+    smica.powers = smica.powers / np.mean(smica.powers, axis=0,
+                                          keepdims=True)
     P, N = A.shape
     smica.n_components = N
     smica.avg_noise = False
@@ -103,17 +104,17 @@ class ICA(object):
         self.C = C
         self.ft = ft
         self.freq_idx = freq_idx
-        smica_ = SMICA(self.C, self.n_components, True, self.rng)
-        smica_.fit(**kwargs)
+        smica_ = SMICA(self.n_components, True, self.rng)
+        smica_.fit(self.C, **kwargs)
         if not self.avg_noise:
-            smica = SMICA(self.C, self.n_components, False, self.rng)
+            smica = SMICA(self.n_components, False, self.rng)
             smica.copy_params(smica_)
-            smica.fit(**kwargs)
+            smica.fit(self.C, **kwargs)
         else:
             smica = smica_
-        self.A = smica.A
-        self.powers = smica.powers
-        self.sigmas = smica.sigmas
+        self.A = smica.A_
+        self.powers = smica.powers_
+        self.sigmas = smica.sigmas_
         self.ica_mne = transfer_to_mne(self.A, self.inst, self.picks)
         return self
 
