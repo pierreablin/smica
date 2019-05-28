@@ -14,15 +14,6 @@ from .core_smica import SMICA
 from .utils import fourier_sampling, itakura, loss
 
 
-def wiener(A, sigmas, powers):
-    '''
-    The Wiener filter
-    '''
-    C = np.linalg.pinv(A.T.dot(A / sigmas[:, None]) +
-                       np.diag(1. / powers))
-    return C.dot(A.T / sigmas[None, :])
-
-
 def transfer_to_mne(A, raw, picks):
     '''
     Hack to use the MNE ICA class providing the estimated mixing matrix A.
@@ -96,25 +87,13 @@ class ICA(object):
             n_epochs, _, _ = X.shape
             X = np.hstack(X)
         self.X = X
-        self._fit(X, **kwargs)
-        return self
-
-    def _fit(self, X, **kwargs):
-        C, ft, freq_idx = fourier_sampling(X, self.sfreq, self.freqs)
-        self.C = C
-        self.ft = ft
-        self.freq_idx = freq_idx
-        smica_ = SMICA(self.n_components, True, self.rng)
-        smica_.fit(self.C, **kwargs)
-        if not self.avg_noise:
-            smica = SMICA(self.n_components, False, self.rng)
-            smica.copy_params(smica_)
-            smica.fit(self.C, **kwargs)
-        else:
-            smica = smica_
-        self.A = smica.A_
+        smica = SMICA(self.n_components, self.freqs, self.sfreq,
+                      self.avg_noise)
+        smica.fit(X, **kwargs)
         self.powers = smica.powers_
+        self.A = smica.A_
         self.sigmas = smica.sigmas_
+        self.smica = smica
         self.ica_mne = transfer_to_mne(self.A, self.inst, self.picks)
         return self
 
@@ -155,75 +134,24 @@ class ICA(object):
                                                    bandwidth=bandwidth))
 
     def is_matrix(self):
-        IS = np.zeros((self.n_components, self.n_components))
-        for i in range(self.n_components):
-            for j in range(self.n_components):
-                IS[i, j] = itakura(self.powers[:, i], self.powers[:, j])
-        self.IS = IS
-        return IS
+        return self.smica.is_matrix()
 
     def compute_f_div(self, halve=False):
-        f = np.zeros((self.n_components, self.n_components))
-        for i in range(self.n_components):
-            for j in range(self.n_components):
-                p1 = self.powers[:, i]
-                p2 = self.powers[:, j]
-                frac = p1 / p2
-                if halve:
-                    frac = frac[:len(frac) // 2]
-                f[i, j] = np.mean(frac) * np.mean(1. / frac) - 1.
-        self.f_div = f
-        return f
+        return self.smica.compute_f_div(halve)
 
     def compute_sources(self, X=None):
-        if X is None:
-            ft = self.ft
-            freq_idx = self.freq_idx
-        else:
-            _, ft, freq_idx = fourier_sampling(X, self.sfreq, self.freqs)
-        p, n = ft.shape
-        ft_sources = 1j * np.zeros((self.n_components, n))
-        if self.avg_noise:
-            sigs = [self.sigmas, ] * len(self.f_scale)
-        else:
-            sigs = self.sigmas
-        for j, (sigma, power) in enumerate(zip(sigs, self.powers)):
-            sl = np.arange(freq_idx[j], freq_idx[j+1])
-            W = wiener(self.A, sigma, power)
-            transf = np.dot(W, ft[:, sl])
-            ft_sources[:, sl] = transf
-            ft_sources[:, n - sl] = np.conj(transf)
-        return np.real(np.fft.ifft(ft_sources))
+        return self.smica.compute_sources(X)
 
     def filter(self, bad_sources=[]):
-        S = self.compute_sources()
-        S[bad_sources] = 0.
-        return np.dot(self.A, S)
+        return self.smica.filter(bad_sources)
 
     def compute_loss(self, X=None):
-        if X is None:
-            covs = self.C
-        else:
-            covs, _, _ = fourier_sampling(X, self.sfreq, self.freqs)
-        return loss(covs, self.A, self.sigmas, self.powers,
-                    self.avg_noise, normalize=True)
-
-    def degrees_freedom(self):
-        p, m = self.A.shape
-        q = len(self.f_scale)
-        return (q * p * (p+1)) // 2, q * p + q * m + m * p
-
-    def avg_freq(self):
-        return np.mean(self.powers * self.f_scale[:, None], axis=0)
+        return self.smica.compute_loss(X)
 
     def cluster(self, mat, n_clusters, **kwargs):
-        if 'linkage' not in kwargs:
-            kwargs['linkage'] = 'average'
-        clustering = AgglomerativeClustering(n_clusters, 'precomputed',
-                                             **kwargs)
-        clustering.fit(mat + mat.T)
-        self.labels = clustering.labels_
-        return self.labels
+        labels = self.smica.cluster(mat, n_clusters, **kwargs)
+        self.labels = labels
+        return labels
 
     def plot_clusters(self, n_clusters, mode='f_div', order=None):
         if mode == 'f_div':
@@ -243,7 +171,3 @@ class ICA(object):
             self.plot_powers(picks=pick, ax=axe)
             axe.set_title('cluster %d | %d sources' % (order[i], sum(pick)))
         return labels
-
-    def band_power(self, f_min, f_max):
-        idx = (f_min < self.f_scale) * (self.f_scale < f_max)
-        return np.mean(self.powers[idx, :], axis=0)

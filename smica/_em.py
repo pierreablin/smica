@@ -86,18 +86,15 @@ def e_step(covs, covs_inv, A, sigmas_square, source_powers, avg_noise):
 
 # @memory.cache(ignore=['verbose', 'return_iterates'])
 def em_algo(covs, A, sigmas_square, source_powers, avg_noise,
-            max_iter=10000, verbose=False, return_iterates=False,
-            dA_thresh=1e-4, dS_thresh=1e-6):
+            max_iter=10000, verbose=False, tol=1e-7, n_it_min=10):
     '''
     EM algorithm to fit the SMICA model on the covariances matrices covs
     '''
     covs_inv = np.array([np.linalg.inv(cov) for cov in covs])
-    x_list = []
-    los_old = np.inf
+    loss_init = loss(covs, A, sigmas_square, source_powers, avg_noise)
+    loss_old = loss_init
+    criterion = 0
     for it in range(max_iter):
-
-        if return_iterates:
-            x_list.append(numpy_to_vect(A, sigmas_square, source_powers))
 
         cov_source_source_s, cov_signal_source, cov_signal_signal =\
             e_step(covs, covs_inv, A, sigmas_square, source_powers, avg_noise)
@@ -109,27 +106,20 @@ def em_algo(covs, A, sigmas_square, source_powers, avg_noise,
         A = A * np.sqrt(scale)
         source_powers = source_powers / scale
         if it > 0:
-            dA = np.linalg.norm(A - A_old) / np.linalg.norm(A)
-            dS = (np.linalg.norm(sigmas_square - sigmas_old)
-                  / np.linalg.norm(sigmas_square))
-            if dA < dA_thresh and dS < dS_thresh:
+            loss_value = loss(covs, A, sigmas_square, source_powers, avg_noise)
+            criterion = (loss_old - loss_value)
+            criterion /= (np.abs(loss_old) + np.abs(loss_value))
+            loss_old = loss_value
+            if criterion < tol and it > n_it_min:
                 break
         if verbose:
             if (it - 1) % verbose == 0 and it > 0:
-                los = loss(covs, A, sigmas_square, source_powers, avg_noise)
-                print('it {:5d}, loss: {:10.5e}, dloss: {:04.2e}, dA: {:04.2e}'
-                      ', dSigma: {:04.2e}, dPowers: {:04.2e}'.format(
-                        it,
-                        los,
-                        los_old - los,
-                        dA,
-                        dS,
-                        np.linalg.norm(source_powers - powers_old)))
-                los_old = los
+                print('it {:5d}, loss: {:10.5e}, crit: {:04.2e}'.format(
+                        it, loss_old, criterion))
         A_old = A.copy()
         sigmas_old = sigmas_square.copy()
         powers_old = source_powers.copy()
     else:
-        warnings.warn('Warning, em algorithm did not converge: difference in A'
-                      ' = %.2e, difference in sigma = %.2e.' % (dA, dS))
-    return A, sigmas_square, source_powers, x_list
+        warnings.warn('Warning, em algorithm did not converge: '
+                      'critertion %.2e' % criterion)
+    return A, sigmas_square, source_powers

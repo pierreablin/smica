@@ -1,87 +1,118 @@
-"""
-API for the core SMICA algorithm : fit the model to a sequence of covariances
-"""
 import numpy as np
 
-from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.utils import check_random_state
+from sklearn.cluster import AgglomerativeClustering
 
-from ._em import em_algo
-from .utils import loss, compute_covariances
+from .core_fitter import CovarianceFit
+from .utils import fourier_sampling, itakura, loss
 
 
-class SMICA(BaseEstimator, TransformerMixin):
+def wiener(A, sigmas, powers):
     '''
-    Compute smica decomposition
+    The Wiener filter
     '''
-    def __init__(self, n_sources, avg_noise=False, rng=None):
-        self.rng = check_random_state(rng)
-        self.n_sources = n_sources
+    C = np.linalg.pinv(A.T.dot(A / sigmas[:, None]) +
+                       np.diag(1. / powers))
+    return C.dot(A.T / sigmas[None, :])
+
+
+class SMICA(object):
+    '''
+    Mimics some the the mne.preprocessing ICA API.
+    '''
+    def __init__(self, n_components, freqs, sfreq, avg_noise=False, rng=None):
+        '''
+        n_components : number of sources
+        freqs : the frequency intervals
+        sfreq : sampling frequency
+        '''
+        self.n_components = n_components
+        self.freqs = freqs
+        self.sfreq = sfreq
         self.avg_noise = avg_noise
-        self.initialized = False
+        self.f_scale = 0.5 * (freqs[1:] + freqs[:-1])
+        self.rng = check_random_state(rng)
 
-    def random_init(self, n_components, n_samples):
-        rng = self.rng
-        self.n_samples_ = n_samples
-        self.n_components_ = n_components
-        self.A_ = rng.randn(n_components, self.n_sources)
+    def fit(self, X, y=None, **kwargs):
+        '''
+        Fits smica to data X (p x n matrix sampled at fs)
+        '''
+        self.X = X
+        C, ft, freq_idx = fourier_sampling(X, self.sfreq, self.freqs)
+        self.C_ = C
+        self.ft_ = ft
+        self.freq_idx_ = freq_idx
+        covfit = CovarianceFit(self.n_components, self.avg_noise, self.rng)
+        covfit.fit(C, **kwargs)
+        self.A_ = covfit.A_
+        self.powers_ = covfit.powers_
+        self.sigmas_ = covfit.sigmas_
+        return self
+
+    def is_matrix(self):
+        IS = np.zeros((self.n_components, self.n_components))
+        for i in range(self.n_components):
+            for j in range(self.n_components):
+                IS[i, j] = itakura(self.powers_[:, i], self.powers_[:, j])
+        self.IS_ = IS
+        return IS
+
+    def compute_f_div(self, halve=False):
+        f = np.zeros((self.n_components, self.n_components))
+        for i in range(self.n_components):
+            for j in range(self.n_components):
+                p1 = self.powers_[:, i]
+                p2 = self.powers_[:, j]
+                frac = p1 / p2
+                if halve:
+                    frac = frac[:len(frac) // 2]
+                f[i, j] = np.mean(frac) * np.mean(1. / frac) - 1.
+        self.f_div = f
+        return f
+
+    def compute_sources(self, X=None):
+        if X is None:
+            ft = self.ft_
+            freq_idx = self.freq_idx_
+        else:
+            _, ft, freq_idx = fourier_sampling(X, self.sfreq, self.freqs)
+        p, n = ft.shape
+        ft_sources = 1j * np.zeros((self.n_components, n))
         if self.avg_noise:
-            self.sigmas_ = np.abs(rng.randn(n_components))
+            sigs = [self.sigmas_, ] * len(self.f_scale)
         else:
-            self.sigmas_ = np.abs(rng.randn(n_samples, n_components))
-        self.powers_ = np.abs(rng.randn(n_samples, self.n_sources))
-        self.initialized = True
-        return self
+            sigs = self.sigmas_
+        for j, (sigma, power) in enumerate(zip(sigs, self.powers_)):
+            sl = np.arange(freq_idx[j], freq_idx[j+1])
+            W = wiener(self.A_, sigma, power)
+            transf = np.dot(W, ft[:, sl])
+            ft_sources[:, sl] = transf
+            ft_sources[:, n - sl] = np.conj(transf)
+        return np.real(np.fft.ifft(ft_sources))
 
-    def fit(self, covs, y=None, **kwargs):
-        self.covs_ = covs
-        n_samples, n_components, _ = covs.shape
-        if not self.initialized:
-            self.random_init(n_components, n_samples)
-        A, sigmas, powers, x_list = \
-            em_algo(self.covs_, self.A_, self.sigmas_, self.powers_,
-                    self.avg_noise, **kwargs)
-        self.A_ = A
-        self.sigmas_ = sigmas
-        self.powers_ = powers
-        self.x_list_ = x_list
-        return self
+    def filter(self, bad_sources=[]):
+        S = self.compute_sources()
+        S[bad_sources] = 0.
+        return np.dot(self.A_, S)
 
-    def fit_transform(self, X, y=None):
-        self.fit(X)
-        return self.powers_
-
-    def copy_params(self, target_smica):
-        self.A_ = np.copy(target_smica.A_)
-        self.powers_ = np.copy(target_smica.powers_)
-        n_samples = len(self.powers_)
-        sigmas = target_smica.sigmas_
-        if not self.avg_noise:
-            if not target_smica.avg_noise:
-                self.sigmas_ = np.copy(sigmas)
-            else:
-                self.sigmas_ = (np.ones(n_samples)[:, None] *
-                                sigmas[None, :])
+    def compute_loss(self, X=None):
+        if X is None:
+            covs = self.C_
         else:
-            if target_ica.avg_noise:
-                self.sigmas_ = np.copy(sigmas)
-            else:
-                1/0
-        self.initialized = True
-        return self
-
-    def true_loss(self):
-        '''
-        compute the loss rectified with the log det. >=0, =0 if the model
-        holds perfectly.
-        '''
-        return loss(self.covs_, self.A_, self.sigmas_, self.powers_,
+            covs, _, _ = fourier_sampling(X, self.sfreq, self.freqs)
+        return loss(covs, self.A_, self.sigmas_, self.powers_,
                     self.avg_noise, normalize=True)
 
-    def compute_approx_covs(self):
-        '''
-        Compute the covariances estimated by the model
-        '''
-        covs_approx = compute_covariances(self.A_, self.powers_, self.sigmas_,
-                                          self.avg_noise)
-        return covs_approx
+    def degrees_freedom(self):
+        p, m = self.A_.shape
+        q = len(self.f_scale)
+        return (q * p * (p+1)) // 2, q * p + q * m + m * p
+
+    def cluster(self, mat, n_clusters, **kwargs):
+        if 'linkage' not in kwargs:
+            kwargs['linkage'] = 'average'
+        clustering = AgglomerativeClustering(n_clusters, 'precomputed',
+                                             **kwargs)
+        clustering.fit(mat + mat.T)
+        self.labels_ = clustering.labels_
+        return self.labels_

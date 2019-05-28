@@ -17,7 +17,7 @@ picks = mne.pick_types(raw.info, meg='mag', eeg=False, eog=False,
 n_bins = 30
 freqs = np.linspace(2, 35, n_bins + 1)
 smica = ICA(n_components=20, freqs=freqs, rng=0)
-smica.fit(raw, picks=picks, verbose=1000, max_iter=10000)
+smica.fit(raw, picks=picks, verbose=3)
 
 # Plot the powers
 

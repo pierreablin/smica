@@ -24,6 +24,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.lprof
+
 MANIFEST
 
 # PyInstaller
@@ -103,3 +105,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+
+# Notebooks
+
+*.ipynb
