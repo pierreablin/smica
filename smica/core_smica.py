@@ -6,19 +6,21 @@ from sklearn.cluster import AgglomerativeClustering
 from .core_fitter import CovarianceFit
 from .utils import fourier_sampling, itakura, loss
 
+eps = 1e-12
+
 
 def wiener(A, sigmas, powers):
     '''
     The Wiener filter
     '''
-    C = np.linalg.pinv(A.T.dot(A / sigmas[:, None]) +
-                       np.diag(1. / powers))
-    return C.dot(A.T / sigmas[None, :])
+    C = np.linalg.pinv(A.T.dot(A / (sigmas[:, None] + eps)) +
+                       np.diag(1. / (powers + eps)))
+    return C.dot(A.T / (sigmas[None, :] + eps))
 
 
 class SMICA(object):
     '''
-    Mimics some the the mne.preprocessing ICA API.
+    Core smica procedure: transform in the frequency domain, etc..
     '''
     def __init__(self, n_components, freqs, sfreq, avg_noise=False, rng=None):
         '''
@@ -70,38 +72,43 @@ class SMICA(object):
         self.f_div = f
         return f
 
-    def compute_sources(self, X=None):
-        if X is None:
-            ft = self.ft_
-            freq_idx = self.freq_idx_
-        else:
-            _, ft, freq_idx = fourier_sampling(X, self.sfreq, self.freqs)
-        p, n = ft.shape
-        ft_sources = 1j * np.zeros((self.n_components, n))
-        if self.avg_noise:
-            sigs = [self.sigmas_, ] * len(self.f_scale)
-        else:
-            sigs = self.sigmas_
-        for j, (sigma, power) in enumerate(zip(sigs, self.powers_)):
-            sl = np.arange(freq_idx[j], freq_idx[j+1])
-            W = wiener(self.A_, sigma, power)
-            transf = np.dot(W, ft[:, sl])
-            ft_sources[:, sl] = transf
-            ft_sources[:, n - sl] = np.conj(transf)
-        return np.real(np.fft.ifft(ft_sources))
+    def compute_sources(self, X=None, method='wiener'):
+        if method == 'wiener':
+            if X is None:
+                ft = self.ft_
+                freq_idx = self.freq_idx_
+            else:
+                _, ft, freq_idx = fourier_sampling(X, self.sfreq, self.freqs)
+            p, n = ft.shape
+            ft_sources = 1j * np.zeros((self.n_components, n))
+            if self.avg_noise:
+                sigs = [self.sigmas_, ] * len(self.f_scale)
+            else:
+                sigs = self.sigmas_
+            for j, (sigma, power) in enumerate(zip(sigs, self.powers_)):
+                sl = np.arange(freq_idx[j], freq_idx[j+1])
+                W = wiener(self.A_, sigma, power)
+                transf = np.dot(W, ft[:, sl])
+                ft_sources[:, sl] = transf
+                ft_sources[:, n - sl] = np.conj(transf)
+            return np.real(np.fft.ifft(ft_sources))
+        elif method == 'pinv':
+            if X is None:
+                X = self.X
+            return np.linalg.pinv(self.A_).dot(X)
 
     def filter(self, bad_sources=[]):
         S = self.compute_sources()
         S[bad_sources] = 0.
         return np.dot(self.A_, S)
 
-    def compute_loss(self, X=None):
+    def compute_loss(self, X=None, by_bin=False):
         if X is None:
             covs = self.C_
         else:
             covs, _, _ = fourier_sampling(X, self.sfreq, self.freqs)
         return loss(covs, self.A_, self.sigmas_, self.powers_,
-                    self.avg_noise, normalize=True)
+                    self.avg_noise, normalize=True, by_bin=by_bin)
 
     def degrees_freedom(self):
         p, m = self.A_.shape
@@ -116,3 +123,12 @@ class SMICA(object):
         clustering.fit(mat + mat.T)
         self.labels_ = clustering.labels_
         return self.labels_
+
+    def compute_filters(self):
+        n_mat = len(self.f_scale)
+        p = self.A_.shape[0]
+        filters = np.zeros((n_mat, self.n_components, p))
+
+        for j, (sigma, power) in enumerate(zip(self.sigmas_, self.powers_)):
+            filters[j] = wiener(self.A_, sigma, power)
+        return filters

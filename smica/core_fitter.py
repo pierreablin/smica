@@ -7,6 +7,7 @@ from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.utils import check_random_state
 
 from ._em import em_algo
+from ._lbfgs import lbfgs
 from .utils import loss, compute_covariances
 
 
@@ -19,37 +20,36 @@ class CovarianceFit(BaseEstimator, TransformerMixin):
         self.rng = check_random_state(rng)
         self.n_sources = n_sources
         self.avg_noise = avg_noise
-        self.initialized = False
         self.transformer = transformer
 
-    def random_init(self, n_components, n_samples):
-        rng = self.rng
-        self.n_samples_ = n_samples
-        self.n_components_ = n_components
-        self.A_ = rng.randn(n_components, self.n_sources)
-        if self.avg_noise:
-            self.sigmas_ = np.abs(rng.randn(n_components))
-        else:
-            self.sigmas_ = np.abs(rng.randn(n_samples, n_components))
-        self.powers_ = np.abs(rng.randn(n_samples, self.n_sources))
-        self.initialized = True
-        return self
-
-    def fit(self, covs, y=None, **kwargs):
+    def fit(self, covs, y=None, tol=1e-6, em_it=10000, use_lbfgs=False,
+            pgtol=1e-3, verbose=0):
         self.covs_ = covs
         n_samples, n_components, _ = covs.shape
-        if not self.initialized:
-            self.random_init(n_components, n_samples)
-        if not self.avg_noise:
-            self.sigmas_ = np.mean(self.sigmas_, axis=0)
+        # Init
+        covs_avg = np.mean(covs, axis=0)
+        self.sigmas_ = np.diagonal(covs_avg)
+        A = np.linalg.eigh(covs_avg)[1][:, -self.n_sources:]
+        self.A_ = A
+        self.powers_ = np.array([np.diagonal(A.T.dot(C.dot(A))) for C in covs])
         A, sigmas, powers = \
-            em_algo(self.covs_, self.A_, self.sigmas_, self.powers_,
-                    avg_noise=True, **kwargs)
+            em_algo(covs, self.A_, self.sigmas_, self.powers_,
+                    avg_noise=True, tol=tol, max_iter=em_it,
+                    verbose=verbose)
         if not self.avg_noise:
             sigmas = sigmas[None, :] * np.ones(n_samples)[:, None]
             A, sigmas, powers = \
-                em_algo(self.covs_, A, sigmas, powers,
-                        avg_noise=False, **kwargs)
+                em_algo(covs, A, sigmas, powers,
+                        avg_noise=False, tol=tol, max_iter=em_it,
+                        verbose=verbose)
+        if use_lbfgs:
+            if verbose:
+                print('Running L-BFGS...')
+            loss0 = loss(covs, A, sigmas, powers, self.avg_noise)
+            A, sigmas, powers, f, d = lbfgs(covs, A, sigmas, powers,
+                                            self.avg_noise, pgtol=pgtol)
+            if verbose:
+                print('Done. Loss: {}'.format(loss0 - f))
         self.A_ = A
         self.sigmas_ = sigmas
         self.powers_ = powers

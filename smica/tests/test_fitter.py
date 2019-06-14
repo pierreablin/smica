@@ -10,8 +10,9 @@ from smica import CovarianceFit, compute_covariances
 def test_covs(avg_noise):
     n_c, p = 4, 3
     q = 2
+    rng = np.random.RandomState(0)
     covs = np.array([x.dot(x.T)
-                     for x in (np.random.randn(p, p) for _ in range(n_c))])
+                     for x in (rng.randn(p, p) for _ in range(n_c))])
     covfit = CovarianceFit(q, avg_noise=avg_noise).fit(covs, tol=1e-3)
     sigma_shape = {True: (p,), False: (n_c, p)}[avg_noise]
     assert covfit.powers_.shape == (n_c, q)

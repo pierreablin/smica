@@ -9,11 +9,11 @@ from smica import SMICA
 @pytest.mark.parametrize('avg_noise', [True, False])
 def test_dims(avg_noise):
     rng = np.random.RandomState(0)
-    p, n = 4, 100
+    p, n = 4, 10
     n_components = 2
     X = rng.randn(p, n)
     sfreq = 10
-    freqs = np.linspace(.1, 5, 10)
+    freqs = np.linspace(.1, 5, 3)
     smica = SMICA(n_components, freqs, sfreq,
                   avg_noise=avg_noise, rng=rng)
     smica.fit(X, tol=1e-1)
@@ -29,7 +29,7 @@ def test_dims(avg_noise):
 @pytest.mark.parametrize('new_X', [True, False])
 def test_sources(avg_noise, new_X):
     rng = np.random.RandomState(0)
-    p, n = 4, 100
+    p, n = 4, 20
     n_components = 2
     X = rng.randn(p, n)
     if new_X:
@@ -37,7 +37,7 @@ def test_sources(avg_noise, new_X):
     else:
         Y = None
     sfreq = 10
-    freqs = np.linspace(.1, 5, 10)
+    freqs = np.linspace(1, 5, 3)
     smica = SMICA(n_components, freqs, sfreq,
                   avg_noise=avg_noise, rng=rng)
     smica.fit(X, tol=1e-1)
@@ -51,11 +51,11 @@ def test_sources(avg_noise, new_X):
 @pytest.mark.parametrize('avg_noise', [True, False])
 def test_filter(avg_noise):
     rng = np.random.RandomState(0)
-    p, n = 4, 100
+    p, n = 4, 20
     n_components = 3
     X = rng.randn(p, n)
     sfreq = 10
-    freqs = np.linspace(.1, 5, 10)
+    freqs = np.linspace(1, 5, 3)
     smica = SMICA(n_components, freqs, sfreq,
                   avg_noise=avg_noise, rng=rng)
     smica.fit(X, tol=1e-1)

@@ -84,7 +84,7 @@ def e_step(covs, covs_inv, A, sigmas_square, source_powers, avg_noise):
     return cov_source_source_s, cov_signal_source, cov_signal_signal
 
 
-# @memory.cache(ignore=['verbose', 'return_iterates'])
+@memory.cache(ignore=['verbose'])
 def em_algo(covs, A, sigmas_square, source_powers, avg_noise,
             max_iter=10000, verbose=False, tol=1e-7, n_it_min=10):
     '''

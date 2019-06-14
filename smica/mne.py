@@ -39,8 +39,9 @@ def transfer_to_ica(raw, picks, freqs, S, A):
     Transfer the sources S and matrix A to the ica class.
     '''
     n_sensors, p = A.shape
-    smica = ICA(n_components=p)
-    C, ft, freq_idx = fourier_sampling(S, smica.sfreq, freqs)
+    smica = ICA(n_components=p, freqs=freqs)
+    sfreq = raw.info['sfreq']
+    C, ft, freq_idx = fourier_sampling(S, sfreq, freqs)
     Q, _, _ = C.shape
     smica.powers = np.diagonal(C, axis1=1, axis2=2)
     smica.powers = smica.powers / np.mean(smica.powers, axis=0,
@@ -50,8 +51,7 @@ def transfer_to_ica(raw, picks, freqs, S, A):
     smica.avg_noise = False
     smica.A = A
     smica.sigmas = np.zeros((Q, N))
-    smica.ica_mne = transfer_to_mne(A, raw, picks,
-                                    sort=False)
+    smica.ica_mne = transfer_to_mne(A, raw, picks)
     return smica
 
 
@@ -87,6 +87,7 @@ class ICA(object):
             n_epochs, _, _ = X.shape
             X = np.hstack(X)
         self.X = X
+        X /= np.std(X)
         smica = SMICA(self.n_components, self.freqs, self.sfreq,
                       self.avg_noise)
         smica.fit(X, **kwargs)
@@ -145,8 +146,8 @@ class ICA(object):
     def filter(self, bad_sources=[]):
         return self.smica.filter(bad_sources)
 
-    def compute_loss(self, X=None):
-        return self.smica.compute_loss(X)
+    def compute_loss(self, X=None, **kwargs):
+        return self.smica.compute_loss(X, **kwargs)
 
     def cluster(self, mat, n_clusters, **kwargs):
         labels = self.smica.cluster(mat, n_clusters, **kwargs)
