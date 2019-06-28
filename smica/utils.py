@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def loss(covs, A, sigma, source_powers, avg_noise=True,
@@ -23,7 +24,7 @@ def loss(covs, A, sigma, source_powers, avg_noise=True,
     return np.sum(loss_values)
 
 
-def fourier_sampling(X, sfreq, freqs):
+def fourier_sampling(X, sfreq, freqs, window=False):
     '''
     Computes spectral covariances from the matrix X. sfreq is the
     sampling frequency of X, the covariances will be computed between the
@@ -38,6 +39,9 @@ def fourier_sampling(X, sfreq, freqs):
     n_f_min = int(n * f_min / sfreq)
     n_f = n_f_max - n_f_min
     n_bins = len(freqs) - 1
+    if window:
+        win = np.hanning(n)
+        X *= win
     fourier_transform = np.fft.fft(X, axis=1)
     C = np.zeros((n_bins, p, p))
     for i in range(n_bins):

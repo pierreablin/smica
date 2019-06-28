@@ -187,7 +187,7 @@ class SOBI_mne(ICA):
             X = inst.get_data(picks=picks)
         else:
             self.inst_type = 'epoch'
-            X = inst.get_data()
+            X = inst.get_data(picks=picks)
             n_epochs, _, _ = X.shape
             X = np.hstack(X)
         self.X = X

@@ -39,7 +39,7 @@ class SMICA(object):
         '''
         Fits smica to data X (p x n matrix sampled at fs)
         '''
-        self.X = X
+        self.X = X.copy()
         C, ft, freq_idx = fourier_sampling(X, self.sfreq, self.freqs)
         self.C_ = C
         self.ft_ = ft
@@ -132,3 +132,14 @@ class SMICA(object):
         for j, (sigma, power) in enumerate(zip(self.sigmas_, self.powers_)):
             filters[j] = wiener(self.A_, sigma, power)
         return filters
+
+    def save_params(self, save_str):
+        covs = self.C_
+        n_mat, p, _ = covs.shape
+        covs_ravel = covs.reshape(n_mat, p ** 2)
+        to_save = [self.A_, self.sigmas_, self.powers_, self.f_scale,
+                   covs_ravel]
+        names = ['mixing_matrix', 'noise_power', 'source_power', 'frequencies',
+                 'covariances']
+        for array, name in zip(to_save, names):
+            np.savetxt(save_str + name + '.csv', array, delimiter=',')

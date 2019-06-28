@@ -23,7 +23,7 @@ class CovarianceFit(BaseEstimator, TransformerMixin):
         self.transformer = transformer
 
     def fit(self, covs, y=None, tol=1e-6, em_it=10000, use_lbfgs=False,
-            pgtol=1e-3, verbose=0):
+            pgtol=1e-3, verbose=0, n_it_min=10):
         self.covs_ = covs
         n_samples, n_components, _ = covs.shape
         # Init
@@ -34,14 +34,14 @@ class CovarianceFit(BaseEstimator, TransformerMixin):
         self.powers_ = np.array([np.diagonal(A.T.dot(C.dot(A))) for C in covs])
         A, sigmas, powers = \
             em_algo(covs, self.A_, self.sigmas_, self.powers_,
-                    avg_noise=True, tol=tol, max_iter=em_it,
+                    avg_noise=True, tol=tol, max_iter=em_it // 10,
                     verbose=verbose)
         if not self.avg_noise:
             sigmas = sigmas[None, :] * np.ones(n_samples)[:, None]
             A, sigmas, powers = \
                 em_algo(covs, A, sigmas, powers,
                         avg_noise=False, tol=tol, max_iter=em_it,
-                        verbose=verbose)
+                        n_it_min=n_it_min, verbose=verbose)
         if use_lbfgs:
             if verbose:
                 print('Running L-BFGS...')

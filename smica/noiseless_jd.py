@@ -30,7 +30,7 @@ class JDIAG(SMICA):
         self.f_scale = 0.5 * (freqs[1:] + freqs[:-1])
         self.rng = check_random_state(rng)
 
-    def fit(self, X, y=None, **kwargs):
+    def fit(self, X, y=None, pca='spectral', **kwargs):
         '''
         Fits sobi to data X (p x n matrix sampled at fs)
         '''
@@ -42,7 +42,10 @@ class JDIAG(SMICA):
         self.C_ = C
         self.ft_ = ft
         self.freq_idx_ = freq_idx
-        u, d, _ = np.linalg.svd(np.mean(C, axis=0))
+        if pca == 'spectral':
+            u, d, _ = np.linalg.svd(np.mean(C, axis=0))
+        else:
+            u, d, _ = np.linalg.svd(X, full_matrices=False)
         whitener = (u / d).T[:self.n_components]
         C_ = _transform_set(whitener, C)
         W, _ = qndiag(C_, **kwargs)
@@ -70,7 +73,7 @@ class JDIAG_mne(ICA):
         self.f_scale = 0.5 * (freqs[1:] + freqs[:-1])
         self.rng = check_random_state(rng)
 
-    def fit(self, inst, picks=None, avg_noise=False, **kwargs):
+    def fit(self, inst, picks=None, avg_noise=False, pca='spectral', **kwargs):
         '''
         Fits smica to inst (either raw or epochs)
         '''
@@ -84,14 +87,14 @@ class JDIAG_mne(ICA):
             X = inst.get_data(picks=picks)
         else:
             self.inst_type = 'epoch'
-            X = inst.get_data()
+            X = inst.get_data(picks=picks)
             n_epochs, _, _ = X.shape
             X = np.hstack(X)
         self.X = X
         X /= np.std(X)
         smica = JDIAG(self.n_components, self.freqs, self.sfreq,
                       self.avg_noise)
-        smica.fit(X, **kwargs)
+        smica.fit(X, pca=pca, **kwargs)
         self.powers = smica.powers_
         self.A = smica.A_
         self.sigmas = smica.sigmas_

@@ -13,7 +13,8 @@ def test_covs(avg_noise):
     rng = np.random.RandomState(0)
     covs = np.array([x.dot(x.T)
                      for x in (rng.randn(p, p) for _ in range(n_c))])
-    covfit = CovarianceFit(q, avg_noise=avg_noise).fit(covs, tol=1e-3)
+    covfit = CovarianceFit(q, avg_noise=avg_noise).fit(covs, tol=1e-3,
+                                                       verbose=1)
     sigma_shape = {True: (p,), False: (n_c, p)}[avg_noise]
     assert covfit.powers_.shape == (n_c, q)
     assert covfit.sigmas_.shape == sigma_shape
@@ -26,16 +27,16 @@ def test_covs(avg_noise):
 
 @pytest.mark.parametrize('avg_noise', [True, False])
 def test_loss(avg_noise):
-    p, q, n_epochs = 3, 2, 3
+    p, q, n_epochs = 3, 2, 5
     rng = np.random.RandomState(0)
     A = rng.randn(p, q)
     if avg_noise:
-        sigmas = np.abs(rng.randn(p))
+        sigmas = .1 + rng.rand(p)
     else:
-        sigmas = np.abs(rng.randn(n_epochs, p))
-    powers = np.abs(rng.randn(n_epochs, q))
+        sigmas = .1 + rng.rand(n_epochs, p)
+    powers = .1 + rng.rand(n_epochs, q)
     covs = compute_covariances(A, powers, sigmas, avg_noise)
-    covfit = CovarianceFit(q, avg_noise=avg_noise, rng=0).fit(covs)
+    covfit = CovarianceFit(q, avg_noise=avg_noise, rng=0).fit(covs, verbose=1)
     covs_est = compute_covariances(covfit.A_, covfit.powers_, covfit.sigmas_,
                                    avg_noise)
     assert_allclose(covs_est, covs, atol=1e-1)

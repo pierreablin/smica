@@ -12,6 +12,24 @@ from mne.epochs import BaseEpochs
 
 from .core_smica import SMICA
 from .utils import fourier_sampling, itakura, loss
+from .dipolarity import dipolarity_using_sphere_model
+
+
+def plot_components(A, raw, picks, **kwargs):
+    p, q = A.shape
+    ica = ICA_(n_components=q, method='fastica', random_state=0,
+               fit_params=dict(max_iter=1))
+    ica.info = pick_info(raw.info, picks)
+    if ica.info['comps']:
+        ica.info['comps'] = []
+    ica.ch_names = ica.info['ch_names']
+    ica.mixing_matrix_ = A
+    ica.pca_components_ = np.eye(p)
+    ica.pca_mean_ = None
+    ica.unmixing_matrix_ = np.linalg.pinv(A)
+    ica.n_components_ = p
+    ica._update_ica_names()
+    ica.plot_components(**kwargs)
 
 
 def transfer_to_mne(A, raw, picks):
@@ -50,8 +68,14 @@ def transfer_to_ica(raw, picks, freqs, S, A):
     smica.n_components = N
     smica.avg_noise = False
     smica.A = A
+    smica.picks = picks
     smica.sigmas = np.zeros((Q, N))
     smica.ica_mne = transfer_to_mne(A, raw, picks)
+    smica_ = SMICA(N, freqs, sfreq)
+    smica_.A_ = A
+    smica_.sigmas_ = smica.sigmas
+    smica_.powers_ = smica.powers
+    smica.smica = smica_
     return smica
 
 
@@ -83,7 +107,7 @@ class ICA(object):
             X = inst.get_data(picks=picks)
         else:
             self.inst_type = 'epoch'
-            X = inst.get_data()
+            X = inst.get_data(picks=picks)
             n_epochs, _, _ = X.shape
             X = np.hstack(X)
         self.X = X
@@ -140,8 +164,8 @@ class ICA(object):
     def compute_f_div(self, halve=False):
         return self.smica.compute_f_div(halve)
 
-    def compute_sources(self, X=None):
-        return self.smica.compute_sources(X)
+    def compute_sources(self, X=None, method='wiener'):
+        return self.smica.compute_sources(X, method=method)
 
     def filter(self, bad_sources=[]):
         return self.smica.filter(bad_sources)
@@ -172,3 +196,6 @@ class ICA(object):
             self.plot_powers(picks=pick, ax=axe)
             axe.set_title('cluster %d | %d sources' % (order[i], sum(pick)))
         return labels
+
+    def compute_dipolarity(self, inst):
+        return dipolarity_using_sphere_model(self.A, inst, self.picks)

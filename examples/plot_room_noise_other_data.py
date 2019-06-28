@@ -1,15 +1,27 @@
 import numpy as np
-import os
+from os import path as op
 import matplotlib.pyplot as plt
-from smica import ICA, transfer_to_ica, SOBI_mne, JDIAG_mne
+from smica import ICA, transfer_to_ica, SOBI_mne, JDIAG_mne, dipolarity
 import mne
 
 from mne.preprocessing import ICA as ICA_mne
 
-from mne.datasets import multimodal
+from mne.datasets import multimodal, sample
 
-raw_fname = os.path.join(multimodal.data_path(), 'multimodal_raw.fif')
+from picard import picard
 
+from sklearn.decomposition import fastica
+
+
+# raw_fname = os.path.join(multimodal.data_path(), 'multimodal_raw.fif')
+n_bins = 40
+n_components = 40
+freqs = np.linspace(1, 60, n_bins + 1)
+
+data_path = sample.data_path()
+fname_bem = op.join(data_path, 'subjects', 'sample', 'bem',
+                    'sample-5120-bem-sol.fif')
+raw_fname = data_path + '/MEG/sample/sample_audvis_raw.fif'
 rc = {"pdf.fonttype": 42, 'text.usetex': False, 'font.size': 14,
       'xtick.labelsize': 12, 'ytick.labelsize': 12, 'text.latex.preview': True}
 
@@ -49,55 +61,55 @@ picks = mne.pick_types(raw.info, meg='mag', eeg=False, eog=False,
 
 # Compute ICA on raw: chose the frequency decomposition. Here, uniform between
 # 2 - 35 Hz.
-n_bins = 40
-n_components = 30
-freqs = np.linspace(1, 60, n_bins + 1)
 #
 jdiag = JDIAG_mne(n_components=n_components, freqs=freqs, rng=0)
 jdiag.fit(raw, picks=picks, verbose=True, tol=1e-9, max_iter=1000)
 
-# Plot the powers
-
-# noise_sources = [0, 1, 3]
-# muscle_source = [2]
-# f, ax = plt.subplots(figsize=(4, 2))
-# plot_powers(jdiag.powers, noise_sources, muscle_source, ax, 'jdiag')
-# plt.show()
-
 
 smica = ICA(n_components=n_components, freqs=freqs, rng=0)
-smica.fit(raw, picks=picks, verbose=100, tol=1e-9, em_it=20000)
+smica.fit(raw, picks=picks, verbose=100, tol=1e-10, em_it=100000)
 
 # Plot powers
 
-noise_sources = [6, 8, 9]
-muscle_source = [7]
-f, ax = plt.subplots(figsize=(4, 2))
-plot_powers(smica.powers, noise_sources, muscle_source, ax, 'smica')
-plt.show()
-#
-#
-# ica = ICA_mne(n_components=n_components, method='picard', random_state=0)
-# ica.fit(raw, picks=picks)
-#
-# ica_mne = transfer_to_ica(raw, picks, freqs,
-#                           ica.get_sources(raw).get_data(),
-#                           ica.mixing_matrix_)
-#
-# noise_sources = [1, 2]
-# muscle_source = [4]
+# noise_sources = [6, 8, 9]
+# muscle_source = [7]
 # f, ax = plt.subplots(figsize=(4, 2))
-# plot_powers(ica_mne.powers, noise_sources, muscle_source, ax, 'infomax')
+# plot_powers(smica.powers, noise_sources, muscle_source, ax, 'smica')
 # plt.show()
-#
-#
-# sobi = SOBI_mne(p=2000, n_components=n_components, freqs=freqs, rng=0)
-# sobi.fit(raw, picks=picks, verbose=True, tol=1e-7, max_iter=10000)
-#
-# # Plot the powers
-#
-# noise_sources = [1, 8]
-# muscle_source = [3]
-# f, ax = plt.subplots(figsize=(4, 2))
-# plot_powers(sobi.powers, noise_sources, muscle_source, ax, 'sobi')
-# plt.show()
+# #
+# #
+# sobi = SOBI_mne(100, n_components, freqs, rng=0)
+# sobi.fit(raw, picks=picks)
+raw.filter(2, 70)
+ica = ICA_mne(n_components=n_components, method='fastica', random_state=0)
+ica.fit(raw, picks=picks)
+
+ica_mne = transfer_to_ica(raw, picks, freqs,
+                          ica.get_sources(raw).get_data(),
+                          ica.get_components())
+
+
+brain_sources = smica.compute_sources()
+K, W, _ = picard(brain_sources, ortho=False, verbose=True, random_state=0,
+                 max_iter=1000)
+picard_mix = np.linalg.pinv(W @ K)
+A_wiener = smica.A.dot(picard_mix)
+gof_wiener = dipolarity(A_wiener, raw, picks, fname_bem, n_jobs=3)[0]
+
+brain_sources = smica.compute_sources(method='pinv')
+K, W, _ = picard(brain_sources, ortho=False, verbose=True, random_state=0,
+                 max_iter=1000)
+picard_mix = np.linalg.pinv(W @ K)
+A_pinv = smica.A.dot(picard_mix)
+gof_pinv = dipolarity(A_pinv, raw, picks, fname_bem, n_jobs=3)[0]
+
+brain_sources = jdiag.compute_sources(raw.get_data(picks=picks), method='pinv')
+K, W, _ = picard(brain_sources, ortho=False, verbose=True, random_state=0,
+                 max_iter=1000)
+picard_mix = np.linalg.pinv(W @ K)
+A_pca = jdiag.A.dot(picard_mix)
+gof_pca = dipolarity(A_pca, raw, picks, fname_bem, n_jobs=3)[0]
+
+gof_smica = dipolarity(smica.A, raw, picks, fname_bem, n_jobs=3)[0]
+gof_jdiag = dipolarity(jdiag.A, raw, picks, fname_bem, n_jobs=3)[0]
+# gof_sobi = dipolarity(sobi.A, raw, picks, fname_bem, n_jobs=3)[0]
