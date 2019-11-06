@@ -51,7 +51,7 @@ picks = mne.pick_types(raw.info, meg=False, eeg=True, eog=False,
                        stim=False, exclude='bads')
 
 n_bins = 40
-n_components = 40
+n_components = 20
 freqs = np.linspace(1, 60, n_bins + 1)
 #
 jdiag = JDIAG_mne(n_components=n_components, freqs=freqs, rng=0)
@@ -62,7 +62,7 @@ jdiag.fit(raw, picks=picks, verbose=True, tol=1e-9, max_iter=1000)
 
 
 smica = ICA(n_components=n_components, freqs=freqs, rng=0)
-smica.fit(raw, picks=picks, verbose=100, tol=1e-10, em_it=100000)
+smica.fit(raw, picks=picks, verbose=100, tol=1e-10, em_it=100000, corr=True)
 
 # Plot powers
 
@@ -127,7 +127,7 @@ gof_ss = dipolarity(fitted_A__, raw, picks)[0]
 goff = dipolarity(fastica_, raw, picks)[0]
 gof_subspace = dipolarity(fitted_A, raw, picks)[0]
 plt.figure()
-plt.plot(np.sort(gofs), label='smica')
+# plt.plot(np.sort(gofs), label='smica')
 plt.plot(np.sort(gofj), label='jdiag')
 plt.plot(np.sort(gofp), label='infomax')
 # plt.plot(np.sort(gofsi), label='smica + infomax')

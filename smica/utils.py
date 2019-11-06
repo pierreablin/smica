@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def loss(covs, A, sigma, source_powers, avg_noise=True,
+def loss(covs, A, sigma, source_powers, avg_noise=True, corr=False,
          normalize=False, by_bin=False):
     '''
     Compute the loss
@@ -10,10 +10,14 @@ def loss(covs, A, sigma, source_powers, avg_noise=True,
     n_epochs, p, _ = covs.shape
     loss_values = np.zeros(n_epochs)
     for j, (cov, power) in enumerate(zip(covs, source_powers)):
-        if avg_noise:
-            R = A.dot(power[:, None] * A.T) + np.diag(sigma)
+        if corr:
+            R = A.dot(power.dot(A.T))
         else:
-            R = A.dot(power[:, None] * A.T) + np.diag(sigma[j])
+            R = A.dot(power[:, None] * A.T)
+        if avg_noise:
+            R += np.diag(sigma)
+        else:
+            R += np.diag(sigma[j])
         loss_value = cov.dot(np.linalg.inv(R)).trace()
         loss_value += np.linalg.slogdet(R)[1]
         if normalize:
@@ -51,13 +55,21 @@ def fourier_sampling(X, sfreq, freqs, window=False):
     return C, fourier_transform, freq_idx
 
 
-def compute_covariances(A, powers, sigmas, avg_noise=False):
-    if avg_noise:
-        covs = np.array([np.dot(A, power[:, None] * A.T) + np.diag(sigmas)
-                         for power in powers])
+def compute_covariances(A, powers, sigmas, avg_noise=False, corr=False):
+    if corr:
+        if avg_noise:
+            covs = np.array([np.dot(A, power.dot(A.T)) + np.diag(sigmas)
+                             for power in powers])
+        else:
+            covs = np.array([np.dot(A, power.dot(A.T)) + np.diag(sigma)
+                             for power, sigma in zip(powers, sigmas)])
     else:
-        covs = np.array([np.dot(A, power[:, None] * A.T) + np.diag(sigma)
-                         for power, sigma in zip(powers, sigmas)])
+        if avg_noise:
+            covs = np.array([np.dot(A, power[:, None] * A.T) + np.diag(sigmas)
+                             for power in powers])
+        else:
+            covs = np.array([np.dot(A, power[:, None] * A.T) + np.diag(sigma)
+                             for power, sigma in zip(powers, sigmas)])
     return covs
 
 

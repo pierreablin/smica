@@ -4,17 +4,21 @@ from sklearn.utils import check_random_state
 from sklearn.cluster import AgglomerativeClustering
 
 from .core_fitter import CovarianceFit
-from .utils import fourier_sampling, itakura, loss
+from .utils import fourier_sampling, itakura, loss, compute_covariances
 
 eps = 1e-12
 
 
-def wiener(A, sigmas, powers):
+def wiener(A, sigmas, powers, corr):
     '''
     The Wiener filter
     '''
-    C = np.linalg.pinv(A.T.dot(A / (sigmas[:, None] + eps)) +
-                       np.diag(1. / (powers + eps)))
+    if corr:
+        C = np.linalg.pinv(A.T.dot(A / (sigmas[:, None] + eps)) +
+                           np.linalg.pinv(powers))
+    else:
+        C = np.linalg.pinv(A.T.dot(A / (sigmas[:, None] + eps)) +
+                           np.diag(1. / (powers + eps)))
     return C.dot(A.T / (sigmas[None, :] + eps))
 
 
@@ -22,7 +26,8 @@ class SMICA(object):
     '''
     Core smica procedure: transform in the frequency domain, etc..
     '''
-    def __init__(self, n_components, freqs, sfreq, avg_noise=False, rng=None):
+    def __init__(self, n_components, freqs, sfreq, avg_noise=False, corr=False,
+                 rng=None):
         '''
         n_components : number of sources
         freqs : the frequency intervals
@@ -33,6 +38,7 @@ class SMICA(object):
         self.sfreq = sfreq
         self.avg_noise = avg_noise
         self.f_scale = 0.5 * (freqs[1:] + freqs[:-1])
+        self.corr = corr
         self.rng = check_random_state(rng)
 
     def fit(self, X, y=None, **kwargs):
@@ -44,7 +50,8 @@ class SMICA(object):
         self.C_ = C
         self.ft_ = ft
         self.freq_idx_ = freq_idx
-        covfit = CovarianceFit(self.n_components, self.avg_noise, self.rng)
+        covfit = CovarianceFit(self.n_components, self.avg_noise, self.corr,
+                               self.rng)
         covfit.fit(C, **kwargs)
         self.A_ = covfit.A_
         self.powers_ = covfit.powers_
@@ -58,6 +65,14 @@ class SMICA(object):
                 IS[i, j] = itakura(self.powers_[:, i], self.powers_[:, j])
         self.IS_ = IS
         return IS
+
+    def compute_approx_covs(self):
+        '''
+        Compute the covariances estimated by the model
+        '''
+        covs_approx = compute_covariances(self.A_, self.powers_, self.sigmas_,
+                                          self.avg_noise, self.corr)
+        return covs_approx
 
     def compute_f_div(self, halve=False):
         f = np.zeros((self.n_components, self.n_components))
@@ -87,7 +102,7 @@ class SMICA(object):
                 sigs = self.sigmas_
             for j, (sigma, power) in enumerate(zip(sigs, self.powers_)):
                 sl = np.arange(freq_idx[j], freq_idx[j+1])
-                W = wiener(self.A_, sigma, power)
+                W = wiener(self.A_, sigma, power, self.corr)
                 transf = np.dot(W, ft[:, sl])
                 ft_sources[:, sl] = transf
                 ft_sources[:, n - sl] = np.conj(transf)
@@ -97,18 +112,31 @@ class SMICA(object):
                 X = self.X
             return np.linalg.pinv(self.A_).dot(X)
 
-    def filter(self, bad_sources=[]):
-        S = self.compute_sources()
+    def filter(self, X=None, bad_sources=[], method='wiener'):
+        S = self.compute_sources(X, method=method)
         S[bad_sources] = 0.
         return np.dot(self.A_, S)
 
     def compute_loss(self, X=None, by_bin=False):
+
         if X is None:
             covs = self.C_
+            freq_idx = self.freq_idx_
         else:
-            covs, _, _ = fourier_sampling(X, self.sfreq, self.freqs)
-        return loss(covs, self.A_, self.sigmas_, self.powers_,
-                    self.avg_noise, normalize=True, by_bin=by_bin)
+            covs, _, freq_idx = fourier_sampling(X, self.sfreq, self.freqs)
+        self.baseline_loss =\
+            loss(covs, np.zeros_like(self.A_),
+                 np.diagonal(covs, axis1=1, axis2=2),
+                 np.zeros_like(self.powers_), avg_noise=self.avg_noise,
+                 corr=self.corr, normalize=True, by_bin=by_bin)
+        kls = loss(covs, self.A_, self.sigmas_, self.powers_,
+                   avg_noise=self.avg_noise, corr=self.corr,
+                   normalize=True, by_bin=True)
+        n_modes = np.diff(freq_idx)
+        if by_bin:
+            return n_modes * kls
+        else:
+            return np.sum(n_modes * kls)
 
     def degrees_freedom(self):
         p, m = self.A_.shape
@@ -130,7 +158,7 @@ class SMICA(object):
         filters = np.zeros((n_mat, self.n_components, p))
 
         for j, (sigma, power) in enumerate(zip(self.sigmas_, self.powers_)):
-            filters[j] = wiener(self.A_, sigma, power)
+            filters[j] = wiener(self.A_, sigma, power, self.corr)
         return filters
 
     def save_params(self, save_str):

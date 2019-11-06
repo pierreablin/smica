@@ -26,9 +26,6 @@ def invert(weighted_cys, sigmas, c_ss, n_jobs=1):
     '''
     Used to compute A in the m step
     '''
-    '''
-    Used to compute A in the m step
-    '''
     M = np.einsum('it, ijk->tkj', sigmas, c_ss)
     inv = np.linalg.solve(M, weighted_cys)
     return inv
@@ -62,7 +59,7 @@ def compute_sigmas(A, cov_signal_source, cov_signal_signal,
     return sigmas_square
 
 
-def m_step(cov_source_source_s, cov_signal_source, cov_signal_signal,
+def m_step(cov_source_source_s, cov_signal_source, cov_signal_signal, corr,
            avg_noise, A=None):
     if avg_noise:
         cov_source_source = np.mean(cov_source_source_s, axis=0)
@@ -76,8 +73,10 @@ def m_step(cov_source_source_s, cov_signal_source, cov_signal_signal,
         weighted_cys = compute_w_cys(sigmas_square, cov_signal_source)
         A = invert(weighted_cys, 1. / (sigmas_square + EPS),
                    cov_source_source_s)
-
-    source_powers = np.diagonal(cov_source_source_s, axis1=1, axis2=2)
+    if corr:
+        source_powers = cov_source_source_s
+    else:
+        source_powers = np.diagonal(cov_source_source_s, axis1=1, axis2=2)
     return A, sigmas_square, source_powers
 
 
@@ -109,7 +108,7 @@ def one_dots(A, B, op):
 
 
 @njit
-def compute_matrices(A, sigmas, source_powers):
+def compute_matrices_uncorr(A, sigmas, source_powers):
     p, q = A.shape
     n, _ = sigmas.shape
     op = np.zeros((n, q, q))
@@ -120,8 +119,26 @@ def compute_matrices(A, sigmas, source_powers):
     return op
 
 
+@njit
+def compute_matrices_corr(A, sigmas, source_powers):
+    p, q = A.shape
+    n, _ = sigmas.shape
+    op = np.zeros((n, q, q))
+    for i in range(n):
+        op[i] = np.dot(A.T / sigmas[i, :], A)
+        op[i] += np.linalg.pinv(source_powers[i])
+    return op
+
+
+def compute_matrices(A, sigmas, source_powers, corr):
+    if corr:
+        return compute_matrices_corr(A, sigmas, source_powers)
+    else:
+        return compute_matrices_uncorr(A, sigmas, source_powers)
+
+
 # @profile
-def e_step(covs, covs_inv, A, sigmas_square, source_powers, avg_noise):
+def e_step(covs, covs_inv, A, sigmas_square, source_powers, corr, avg_noise):
     n_epochs, p, _ = covs.shape
     p, q = A.shape
     cov_source_source_s = np.zeros((n_epochs, q, q))
@@ -133,16 +150,18 @@ def e_step(covs, covs_inv, A, sigmas_square, source_powers, avg_noise):
         cov_signal_signal = covs
     if avg_noise:
         At_sig_A = np.zeros((n_epochs, q, q))
-        At_sig_A_ = A.T.dot(A / sigmas_square[:, None])
-        proj = A.T / sigmas_square[None, :]
-
+        At_sig_A_ = A.T.dot(A / (sigmas_square[:, None] + EPS))
+        proj = A.T / (sigmas_square[None, :] + EPS)
     if not avg_noise:
-        At_sig_A = compute_matrices(A, sigmas_square, source_powers)
+        At_sig_A = compute_matrices(A, sigmas_square, source_powers, corr)
         proj = A.T / sigmas_square[:, None, :]
     else:
         for epoch, source_power in enumerate(source_powers):
             if avg_noise:
-                At_sig_A[epoch] = At_sig_A_ + np.diag(1. / source_power)
+                if corr:
+                    At_sig_A[epoch] = At_sig_A_ + np.linalg.pinv(source_power)
+                else:
+                    At_sig_A[epoch] = At_sig_A_ + np.diag(1. / source_power)
     expected_cov = np.linalg.inv(At_sig_A)
     if avg_noise:
         wiener = one_dots(expected_cov, proj, wiener)
@@ -153,12 +172,13 @@ def e_step(covs, covs_inv, A, sigmas_square, source_powers, avg_noise):
     cov_source_source_s += expected_cov
     if avg_noise:
         cov_signal_source = np.mean(cov_signal_source, axis=0)
+
     return cov_source_source_s, cov_signal_source, cov_signal_signal
 
 
 # @profile
 @memory.cache(ignore=['verbose'])
-def em_algo(covs, A, sigmas_square, source_powers, avg_noise,
+def em_algo(covs, A, sigmas_square, source_powers, corr, avg_noise,
             max_iter=10000, verbose=False, tol=1e-7, n_it_min=10,
             cd_every=0, n_jobs=1):
     '''
@@ -168,17 +188,18 @@ def em_algo(covs, A, sigmas_square, source_powers, avg_noise,
     n_sensors, n_sources = A.shape
     n_mat, _, _ = covs.shape
     covs_inv = np.array([np.linalg.inv(cov) for cov in covs])
-    loss_init = loss(covs, A, sigmas_square, source_powers, avg_noise)
+    loss_init = loss(covs, A, sigmas_square, source_powers, avg_noise, corr)
     loss_old = loss_init
     criterion = 0
     do_cd = cd_every != 0
     for it in range(max_iter):
         cov_source_source_s, cov_signal_source, cov_signal_signal =\
-            e_step(covs, covs_inv, A, sigmas_square, source_powers, avg_noise)
+            e_step(covs, covs_inv, A, sigmas_square, source_powers, corr,
+                   avg_noise)
 
         A, sigmas_square, source_powers =\
             m_step(cov_source_source_s, cov_signal_source, cov_signal_signal,
-                   avg_noise, A)
+                   corr, avg_noise, A)
         # CD updates
         if do_cd:
             if it % cd_every == 0 and not avg_noise:
@@ -212,11 +233,17 @@ def em_algo(covs, A, sigmas_square, source_powers, avg_noise,
                         covs_estimates[mat] += diff * aaT
         # Rescale
 
-        scale = np.mean(source_powers, axis=0, keepdims=True)
+        if corr:
+            scale = np.mean(np.diagonal(source_powers, axis1=1, axis2=2),
+                            axis=0)
+            source_powers /= np.sqrt(np.outer(scale, scale))[None, :, :]
+        else:
+            scale = np.mean(source_powers, axis=0, keepdims=True)
+            source_powers = source_powers / scale
         A = A * np.sqrt(scale)
-        source_powers = source_powers / scale
         if it > 0 and it % 50 == 0:
-            loss_value = loss(covs, A, sigmas_square, source_powers, avg_noise)
+            loss_value = loss(covs, A, sigmas_square, source_powers, avg_noise,
+                              corr)
             criterion = (loss_old - loss_value)
             criterion /= (np.abs(loss_old) + np.abs(loss_value))
             loss_old = loss_value
@@ -224,12 +251,15 @@ def em_algo(covs, A, sigmas_square, source_powers, avg_noise,
                 break
         if verbose:
             if (it - 1) % verbose == 0 and it > 0:
+                loss_print = loss(covs, A, sigmas_square, source_powers,
+                                  avg_noise,
+                                  corr)
                 print('it {:5d}, loss: {:10.5e}, crit: {:04.2e}'.format(
-                        it, loss_old, criterion))
+                        it, loss_print, criterion))
         A_old = A.copy()
         sigmas_old = sigmas_square.copy()
         powers_old = source_powers.copy()
     else:
         warnings.warn('Warning, em algorithm did not converge: '
-                      'critertion %.2e' % criterion)
+                      'criterion %.2e' % criterion)
     return A, sigmas_square, source_powers

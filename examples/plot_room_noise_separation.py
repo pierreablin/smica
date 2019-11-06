@@ -66,7 +66,7 @@ plt.show()
 
 
 smica = ICA(n_components=n_components, freqs=freqs, rng=0)
-smica.fit(raw, picks=picks, verbose=100, tol=1e-7)
+smica.fit(raw, picks=picks, verbose=100, tol=1e-10, em_it=100000)
 
 # Plot powers
 

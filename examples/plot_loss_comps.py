@@ -24,3 +24,10 @@ for n_component in np.arange(1, n_components):
     smica = ICA(n_components=n_component, freqs=freqs, rng=0)
     smica.fit(raw, picks=picks, verbose=2000, tol=1e-7, em_it=10000)
     loss_list.append(smica.compute_loss())
+
+
+plt.plot(np.arange(1, n_components), loss_list - np.min(loss_list))
+plt.yscale('log')
+plt.xlabel('Number of sources')
+plt.ylabel('Negative log likelihood')
+plt.show()

@@ -24,7 +24,7 @@ class SMICATransformer(BaseEstimator, TransformerMixin):
         X is of shape (n, p, T)
         '''
         smica = SMICA(self.n_components, self.freqs, self.sfreq,
-                      self.avg_noise, self.rng)
+                      avg_noise=self.avg_noise, rng=self.rng)
         smica.fit(np.hstack(X), **kwargs)
         self.smica_ = smica
         return self

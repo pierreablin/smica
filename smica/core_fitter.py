@@ -15,11 +15,12 @@ class CovarianceFit(BaseEstimator, TransformerMixin):
     '''
     Compute smica decomposition
     '''
-    def __init__(self, n_sources, avg_noise=False,
+    def __init__(self, n_sources, avg_noise=False, corr=False,
                  transformer='power', rng=None):
         self.rng = check_random_state(rng)
         self.n_sources = n_sources
         self.avg_noise = avg_noise
+        self.corr = corr
         self.transformer = transformer
 
     def fit(self, covs, y=None, tol=1e-6, em_it=10000, use_lbfgs=False,
@@ -31,21 +32,26 @@ class CovarianceFit(BaseEstimator, TransformerMixin):
         self.sigmas_ = np.diagonal(covs_avg)
         A = np.linalg.eigh(covs_avg)[1][:, -self.n_sources:]
         self.A_ = A
-        self.powers_ = np.array([np.diagonal(A.T.dot(C.dot(A))) for C in covs])
+        if self.corr:
+            self.powers_ = np.array([A.T.dot(C.dot(A))
+                                     for C in covs])
+        else:
+            self.powers_ = np.array([np.diagonal(A.T.dot(C.dot(A)))
+                                     for C in covs])
         A, sigmas, powers = \
-            em_algo(covs, self.A_, self.sigmas_, self.powers_,
+            em_algo(covs, self.A_, self.sigmas_, self.powers_, corr=self.corr,
                     avg_noise=True, tol=tol, max_iter=em_it // 10,
                     verbose=verbose)
         if not self.avg_noise:
             sigmas = sigmas[None, :] * np.ones(n_samples)[:, None]
             A, sigmas, powers = \
-                em_algo(covs, A, sigmas, powers,
+                em_algo(covs, A, sigmas, powers, corr=self.corr,
                         avg_noise=False, tol=tol, max_iter=em_it,
                         n_it_min=n_it_min, verbose=verbose)
         if use_lbfgs:
             if verbose:
                 print('Running L-BFGS...')
-            loss0 = loss(covs, A, sigmas, powers, self.avg_noise)
+            loss0 = loss(covs, A, sigmas, powers, self.avg_noise, self.corr)
             A, sigmas, powers, f, d = lbfgs(covs, A, sigmas, powers,
                                             self.avg_noise, pgtol=pgtol)
             if verbose:
@@ -89,12 +95,12 @@ class CovarianceFit(BaseEstimator, TransformerMixin):
         if covs is None:
             covs = self.covs_
         return loss(covs, self.A_, self.sigmas_, self.powers_,
-                    self.avg_noise, normalize=True)
+                    avg_noise=self.avg_noise, corr=self.corr, normalize=True)
 
     def compute_approx_covs(self):
         '''
         Compute the covariances estimated by the model
         '''
         covs_approx = compute_covariances(self.A_, self.powers_, self.sigmas_,
-                                          self.avg_noise)
+                                          self.avg_noise, self.corr)
         return covs_approx

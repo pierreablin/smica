@@ -54,7 +54,7 @@ def compute_decomposition(algo_name, subject, n_components, decomp_num,
     if algo_name in ['pinv_infomax', 'wiener_infomax']:
         smica = ICA(n_components=n_components, freqs=freqs, rng=0)
         algo_args = dict(em_it=100000, tol=1e-8, n_it_min=100000)
-        smica.fit(epochs, picks, **algo_args)
+        smica.fit(epochs, picks, corr=False, **algo_args)
         method = {'pinv_infomax': 'pinv',
                   'wiener_infomax': 'wiener'}[algo_name]
         sources = smica.compute_sources(method=method)
@@ -67,9 +67,9 @@ def compute_decomposition(algo_name, subject, n_components, decomp_num,
 
 
 if __name__ == '__main__':
-    algo_names = ['smica', 'jdiag', 'sobi', 'infomax', 'pinv_infomax',
+    algo_names = ['jdiag', 'sobi', 'infomax', 'pinv_infomax',
                   'wiener_infomax']
-    n_components = [2]
+    n_components = [10]
     subjects = [1]
     iter_list = list(product(algo_names, subjects, n_components))
     k = len(iter_list)

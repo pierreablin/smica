@@ -2,6 +2,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from scipy.signal import hilbert
+
 import mne
 from mne.preprocessing import ICA as ICA_
 from mne.io.pick import pick_info
@@ -9,10 +11,13 @@ from sklearn.utils import check_random_state
 from sklearn.cluster import AgglomerativeClustering
 from mne.io import BaseRaw
 from mne.epochs import BaseEpochs
+from mne.viz.topomap import _plot_ica_topomap
 
 from .core_smica import SMICA
 from .utils import fourier_sampling, itakura, loss
 from .dipolarity import dipolarity_using_sphere_model
+from .viz import plot_extended
+from .mutual_info import mutual_information_2d
 
 
 def plot_components(A, raw, picks, **kwargs):
@@ -76,6 +81,7 @@ def transfer_to_ica(raw, picks, freqs, S, A):
     smica_.sigmas_ = smica.sigmas
     smica_.powers_ = smica.powers
     smica.smica = smica_
+    smica.sfreq = sfreq
     return smica
 
 
@@ -93,7 +99,8 @@ class ICA(object):
         self.f_scale = 0.5 * (freqs[1:] + freqs[:-1])
         self.rng = check_random_state(rng)
 
-    def fit(self, inst, picks=None, avg_noise=False, **kwargs):
+    def fit(self, inst, picks=None, avg_noise=False, corr=False, exclude=None,
+            **kwargs):
         '''
         Fits smica to inst (either raw or epochs)
         '''
@@ -101,7 +108,9 @@ class ICA(object):
         self.info = inst.info
         self.sfreq = inst.info['sfreq']
         self.picks = picks
+        self.corr = corr
         self.avg_noise = avg_noise
+        self.exclude = exclude
         if isinstance(inst, BaseRaw):
             self.inst_type = 'raw'
             X = inst.get_data(picks=picks)
@@ -110,10 +119,12 @@ class ICA(object):
             X = inst.get_data(picks=picks)
             n_epochs, _, _ = X.shape
             X = np.hstack(X)
+        if exclude is not None:
+            X = np.delete(X, exclude, axis=0)
         self.X = X
         X /= np.std(X)
         smica = SMICA(self.n_components, self.freqs, self.sfreq,
-                      self.avg_noise)
+                      avg_noise=self.avg_noise, corr=self.corr)
         smica.fit(X, **kwargs)
         self.powers = smica.powers_
         self.A = smica.A_
@@ -167,8 +178,19 @@ class ICA(object):
     def compute_sources(self, X=None, method='wiener'):
         return self.smica.compute_sources(X, method=method)
 
-    def filter(self, bad_sources=[]):
-        return self.smica.filter(bad_sources)
+    def filter(self, X=None, bad_sources=[], method='wiener'):
+        return self.smica.filter(X, bad_sources, method=method)
+
+    def compute_mutual_information(self, X=None, method='wiener'):
+        S = self.compute_sources(X=X, method=method)
+        n_sources = S.shape[0]
+        MI = np.zeros((n_sources, n_sources))
+        for i in range(n_sources):
+            for j in range(i):
+                mi = mutual_information_2d(S[i], S[j])
+                MI[i, j] = mi
+                MI[j, i] = mi
+        return MI
 
     def compute_loss(self, X=None, **kwargs):
         return self.smica.compute_loss(X, **kwargs)
@@ -199,3 +221,10 @@ class ICA(object):
 
     def compute_dipolarity(self, inst):
         return dipolarity_using_sphere_model(self.A, inst, self.picks)
+
+    def plot_extended(self, sources=None, **kwargs):
+        if sources is None:
+            sources = self.compute_sources()
+        plot_extended(sources,
+                      self.sfreq, self.f_scale,
+                      self.powers, self.ica_mne, **kwargs)

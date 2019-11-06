@@ -62,7 +62,7 @@ class JDIAG(SMICA):
 
     def compute_sources(self, X=None, method='pinv'):
         if method == 'wiener':
-            raise ValueError('Only method=pinv is implemented for SOBI')
+            raise ValueError('Only method=pinv is implemented for JDIAG')
         return super().compute_sources(X=X, method=method)
 
 
@@ -101,3 +101,6 @@ class JDIAG_mne(ICA):
         self.smica = smica
         self.ica_mne = transfer_to_mne(self.A, self.inst, self.picks)
         return self
+
+    def compute_sources(self, X=None, method='pinv'):
+        return self.smica.compute_sources(X, method=method)

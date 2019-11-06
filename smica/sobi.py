@@ -60,12 +60,24 @@ def _move(epsilon, D):
     return M, _transform_set(M, D)
 
 
-def _joint_diag(C, max_iter, tol=1e-7, theta=0.5, verbose=False):
+def _loss(B_list):
+    op = 0.
+    for B in B_list:
+        Br = B.ravel()
+        Bd = np.diag(B)
+        op += Br.dot(Br) - Bd.dot(Bd)
+    return op
+
+
+def _joint_diag(C, max_iter, tol=1e-7, theta=0.5, max_ls_tries=20,
+                verbose=False):
     if verbose:
         print(C.shape)
     K, N, _ = C.shape
     D = C.copy()
     W = np.eye(N)
+    old_loss = _loss(D)
+    step = 1.
     for n in range(max_iter):
         # Isolate the diagonals
         diagonals = np.diagonal(D, axis1=1, axis2=2)
@@ -89,7 +101,17 @@ def _joint_diag(C, max_iter, tol=1e-7, theta=0.5, verbose=False):
         if norm > theta:
             eps *= theta / norm
         # Move
-        M, D = _move(eps, D)
+
+        for ls in range(max_ls_tries):
+            M, D_new = _move(step * eps, D)
+            new_loss = _loss(D_new)
+            if new_loss < old_loss:
+                step = min(1, 2 * step)
+                break
+            else:
+                step = max(step / 2, 1e-5)
+        old_loss = new_loss
+        D = D_new
         W = M @ W
     return W
 
@@ -201,3 +223,6 @@ class SOBI_mne(ICA):
         self.smica = smica
         self.ica_mne = transfer_to_mne(self.A, self.inst, self.picks)
         return self
+
+    def compute_sources(self, X=None, method='pinv'):
+        return self.smica.compute_sources(X, method=method)
