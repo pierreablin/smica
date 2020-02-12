@@ -8,14 +8,14 @@ These computations rely on nearest-neighbor statistics
 '''
 import numpy as np
 
-from scipy.special import gamma,psi
+from scipy.special import gamma, psi
 from scipy import ndimage
 from scipy.linalg import det
 from numpy import pi
 
 from sklearn.neighbors import NearestNeighbors
 
-__all__=['entropy', 'mutual_information', 'entropy_gaussian']
+__all__ = ['entropy', 'mutual_information', 'entropy_gaussian']
 
 EPS = np.finfo(float).eps
 
@@ -133,7 +133,7 @@ def mutual_information_2d(x, y, sigma=1, normalized=False):
 
     # smooth the jh with a gaussian filter of given sigma
     ndimage.gaussian_filter(jh, sigma=sigma, mode='constant',
-                                 output=jh)
+                            output=jh)
 
     # compute marginal histograms
     jh = jh + EPS
@@ -148,13 +148,69 @@ def mutual_information_2d(x, y, sigma=1, normalized=False):
     # in Proc. Medical Imaging 1998, vol. 3338, San Diego, CA, pp. 132-143.
     if normalized:
         mi = ((np.sum(s1 * np.log(s1)) + np.sum(s2 * np.log(s2)))
-                / np.sum(jh * np.log(jh))) - 1
+               / np.sum(jh * np.log(jh))) - 1
     else:
-        mi = ( np.sum(jh * np.log(jh)) - np.sum(s1 * np.log(s1))
-               - np.sum(s2 * np.log(s2)))
+        mi = (np.sum(jh * np.log(jh)) - np.sum(s1 * np.log(s1))
+              - np.sum(s2 * np.log(s2)))
 
     return mi
 
+
+def getent2(u, nbins=None):
+
+    """
+    This is a python translation of the getent2.m matlab function, which
+    is included in the code realeased with the plosone paper
+    "EEG independent sources are dipolar"
+    """
+    nu, Nu = u.shape
+
+    if nbins is None:
+        nbins = np.min([100, np.round(np.sqrt(Nu))])
+
+    Hu = np.zeros(nu)
+    deltau = np.zeros(nu)
+
+    for i in range(nu):
+
+        umax = np.max(u[i])
+        umin = np.min(u[i])
+
+        deltau[i] = (umax - umin) / float(nbins)
+
+        uu = \
+            1 + np.round((nbins - 1) * (u[i] - umin) / float(umax - umin))
+
+        temp = np.nonzero(np.diff(np.sort(uu)))[0] + 1
+
+        ##############################################################
+        # pmfr = np.diff(np.append(np.append(0, temp), Nu)) / float(Nu)
+
+        temp2 = np.zeros(len(temp) + 2)
+        temp2[-1] = Nu
+        temp2[1:-1] = temp
+        pmfr = np.diff(temp2) / float(Nu)
+
+        ##############################################################
+
+        Hu[i] = -np.sum(pmfr * np.log(pmfr)) + np.log(deltau[i])
+
+    return Hu, deltau
+
+
+def get_mir(estimated_sources, sfreq=1000):
+    h, _ = getent2(estimated_sources)
+
+    # Let's transform nats to kbits per second
+    # 1 nat = log2(exp(1)) bits
+    # EEG.srate is the sampling frequency
+    # 1kbit = 1000 bits
+    C = np.dot(estimated_sources, estimated_sources.T)
+    mir = (- h + .5 * np.linalg.slogdet(C)[1] / len(h)) * \
+        np.log2(np.exp(1)) * sfreq / 1000.
+
+    # mir is expressed in kbits / seconds
+    return mir
 
 if __name__ == '__main__':
     mutual_information_2d(np.random.randn(100000), np.random.randn(100000))

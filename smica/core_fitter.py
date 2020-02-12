@@ -6,6 +6,8 @@ import numpy as np
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.utils import check_random_state
 
+from qndiag import qndiag
+
 from ._em import em_algo
 from ._lbfgs import lbfgs
 from .utils import loss, compute_covariances
@@ -24,20 +26,35 @@ class CovarianceFit(BaseEstimator, TransformerMixin):
         self.transformer = transformer
 
     def fit(self, covs, y=None, tol=1e-6, em_it=10000, use_lbfgs=False,
-            pgtol=1e-3, verbose=0, n_it_min=10):
+            pgtol=1e-3, verbose=0, n_it_min=10, init='qndiag'):
         self.covs_ = covs
         n_samples, n_components, _ = covs.shape
         # Init
         covs_avg = np.mean(covs, axis=0)
-        self.sigmas_ = np.diagonal(covs_avg)
         A = np.linalg.eigh(covs_avg)[1][:, -self.n_sources:]
-        self.A_ = A
-        if self.corr:
-            self.powers_ = np.array([A.T.dot(C.dot(A))
-                                     for C in covs])
+        if init == 'qndiag':
+            covs_pca = np.array([np.dot(A.T, np.dot(C, A)) for C in covs])
+            unmix_pca, B, _ = qndiag(covs_pca, return_set=True)
+            A = np.dot(A, np.linalg.pinv(B))
+            self.A_ = A
+            if self.corr:
+                self.powers_ = unmix_pca
+                covs_expl = np.array([A.dot(P.dot(A.T)) for P in self.powers_])
+            else:
+                self.powers_ = np.diagonal(unmix_pca, axis1=1, axis2=2)
+                covs_expl = np.array([A.dot(P[:, None] * A.T)
+                                      for P in self.powers_])
+            self.sigmas_ = (np.mean((covs - covs_expl) ** 2) *
+                            np.ones(n_components))
         else:
-            self.powers_ = np.array([np.diagonal(A.T.dot(C.dot(A)))
-                                     for C in covs])
+            self.A_ = A
+            if self.corr:
+                self.powers_ = np.array([A.T.dot(C.dot(A))
+                                         for C in covs])
+            else:
+                self.powers_ = np.array([np.diag(A.T.dot(C.dot(A)))
+                                        for C in covs])
+            self.sigmas_ = np.mean(covs_avg, axis=1)
         A, sigmas, powers = \
             em_algo(covs, self.A_, self.sigmas_, self.powers_, corr=self.corr,
                     avg_noise=True, tol=tol, max_iter=em_it // 10,

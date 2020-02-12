@@ -12,4 +12,4 @@ from .smica_predictor import SMICAPredictor
 from .sobi import sobi, SOBI, SOBI_mne
 from .noiseless_jd import JDIAG, JDIAG_mne
 from .dipolarity import dipolarity
-from .mutual_info import mutual_information_2d
+from .mutual_info import mutual_information_2d, get_mir
