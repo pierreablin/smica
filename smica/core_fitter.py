@@ -11,6 +11,54 @@ from qndiag import qndiag
 from ._em import em_algo
 from ._lbfgs import lbfgs
 from .utils import loss, compute_covariances
+from scipy.linalg import sqrtm
+from scipy.optimize import fmin_l_bfgs_b
+
+
+def lbfgs_solver(P, q):
+    p, _ = P.shape
+
+    def func(x):
+        Px = np.dot(P, x)
+        return 0.5 * np.dot(x, Px) + np.dot(q, x), Px + q
+    x, _, _ = fmin_l_bfgs_b(func, np.zeros(p), bounds=[(0, None), ] * p)
+    return x
+
+
+def minimize_diag(A, B, C):
+    # Minimize |A diag(x)A.T + B diag(y)B.T + C| subject to x, y >=0.
+    p, n = A.shape
+    _, m = B.shape
+    P = np.zeros((n + m, n + m))
+    Q = np.zeros(n + m)
+    AB = np.dot(A.T, B) ** 2
+    P[:n, :n] = np.dot(A.T, A) ** 2
+    P[n:, n:] = np.dot(B.T, B) ** 2
+    P[:n, n:] = AB
+    P[n:, :n] = AB.T
+    Q[:n] = np.diag(np.dot(A.T, np.dot(C, A)))
+    Q[n:] = np.diag(np.dot(B.T, np.dot(C, B)))
+    sol = lbfgs_solver(P, Q)
+    return sol[:n], sol[n:]
+
+
+def fit_powers(A, C):
+    p, q = A.shape
+    C_si = sqrtm(np.linalg.pinv(C))
+    M1 = C_si.dot(A)
+    return minimize_diag(M1, C_si, -np.eye(p))
+
+
+def fit_A_fixed(A, C_list):
+    n, _, _ = C_list.shape
+    p, q = A.shape
+    source_powers = np.zeros((n, q))
+    sigmas = np.zeros((n, p))
+    for i, C in enumerate(C_list):
+        power, sigma = fit_powers(A, C)
+        source_powers[i] = power
+        sigmas[i] = sigma
+    return source_powers, sigmas
 
 
 class CovarianceFit(BaseEstimator, TransformerMixin):
@@ -26,7 +74,7 @@ class CovarianceFit(BaseEstimator, TransformerMixin):
         self.transformer = transformer
 
     def fit(self, covs, y=None, tol=1e-6, em_it=10000, use_lbfgs=False,
-            pgtol=1e-3, verbose=0, n_it_min=10, init='qndiag'):
+            pgtol=1e-3, verbose=0, n_it_min=10, init='standard'):
         self.covs_ = covs
         n_samples, n_components, _ = covs.shape
         # Init
@@ -34,18 +82,13 @@ class CovarianceFit(BaseEstimator, TransformerMixin):
         A = np.linalg.eigh(covs_avg)[1][:, -self.n_sources:]
         if init == 'qndiag':
             covs_pca = np.array([np.dot(A.T, np.dot(C, A)) for C in covs])
-            unmix_pca, B, _ = qndiag(covs_pca, return_set=True)
+            B, _ = qndiag(covs_pca)
             A = np.dot(A, np.linalg.pinv(B))
-            self.A_ = A
-            if self.corr:
-                self.powers_ = unmix_pca
-                covs_expl = np.array([A.dot(P.dot(A.T)) for P in self.powers_])
-            else:
-                self.powers_ = np.diagonal(unmix_pca, axis1=1, axis2=2)
-                covs_expl = np.array([A.dot(P[:, None] * A.T)
-                                      for P in self.powers_])
-            self.sigmas_ = (np.mean((covs - covs_expl) ** 2) *
-                            np.ones(n_components))
+            powers, sigmas = fit_A_fixed(A, covs)
+            sigmas += 1e-10
+            powers += 1e-10
+            if self.avg_noise:
+                sigmas = np.mean(sigmas, axis=0)
         else:
             self.A_ = A
             if self.corr:
@@ -55,16 +98,17 @@ class CovarianceFit(BaseEstimator, TransformerMixin):
                 self.powers_ = np.array([np.diag(A.T.dot(C.dot(A)))
                                         for C in covs])
             self.sigmas_ = np.mean(covs_avg, axis=1)
-        A, sigmas, powers = \
-            em_algo(covs, self.A_, self.sigmas_, self.powers_, corr=self.corr,
-                    avg_noise=True, tol=tol, max_iter=em_it // 10,
-                    verbose=verbose)
-        if not self.avg_noise:
-            sigmas = sigmas[None, :] * np.ones(n_samples)[:, None]
             A, sigmas, powers = \
-                em_algo(covs, A, sigmas, powers, corr=self.corr,
-                        avg_noise=False, tol=tol, max_iter=em_it,
-                        n_it_min=n_it_min, verbose=verbose)
+                em_algo(covs, self.A_, self.sigmas_, self.powers_,
+                        corr=self.corr, avg_noise=True, tol=tol,
+                        max_iter=em_it // 10,
+                        verbose=verbose)
+            if not self.avg_noise:
+                sigmas = sigmas[None, :] * np.ones(n_samples)[:, None]
+        A, sigmas, powers = \
+            em_algo(covs, A, sigmas, powers, corr=self.corr,
+                    avg_noise=self.avg_noise, tol=tol, max_iter=em_it,
+                    n_it_min=n_it_min, verbose=verbose)
         if use_lbfgs:
             if verbose:
                 print('Running L-BFGS...')

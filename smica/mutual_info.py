@@ -212,5 +212,6 @@ def get_mir(estimated_sources, sfreq=1000):
     # mir is expressed in kbits / seconds
     return mir
 
+
 if __name__ == '__main__':
     mutual_information_2d(np.random.randn(100000), np.random.randn(100000))
