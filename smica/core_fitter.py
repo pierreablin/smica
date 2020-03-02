@@ -10,9 +10,11 @@ from qndiag import qndiag
 
 from ._em import em_algo
 from ._lbfgs import lbfgs
+from ._lbfgs_noise import lbfgs_noise
 from .utils import loss, compute_covariances
 from scipy.linalg import sqrtm
 from scipy.optimize import fmin_l_bfgs_b
+from scipy.io import savemat
 
 
 def lbfgs_solver(P, q):
@@ -73,8 +75,9 @@ class CovarianceFit(BaseEstimator, TransformerMixin):
         self.corr = corr
         self.transformer = transformer
 
-    def fit(self, covs, y=None, tol=1e-6, em_it=10000, use_lbfgs=False,
-            pgtol=1e-3, verbose=0, n_it_min=10, init='standard'):
+    def fit(self, covs, y=None, tol=1e-6, em_it=10000, n_it_lbfgs=0,
+            verbose=0, n_it_min=10, init='standard'):
+        use_lbfgs = n_it_lbfgs > 0
         self.covs_ = covs
         n_samples, n_components, _ = covs.shape
         # Init
@@ -109,14 +112,16 @@ class CovarianceFit(BaseEstimator, TransformerMixin):
             em_algo(covs, A, sigmas, powers, corr=self.corr,
                     avg_noise=self.avg_noise, tol=tol, max_iter=em_it,
                     n_it_min=n_it_min, verbose=verbose)
-        if use_lbfgs:
+        if use_lbfgs and not self.avg_noise:
             if verbose:
                 print('Running L-BFGS...')
             loss0 = loss(covs, A, sigmas, powers, self.avg_noise, self.corr)
             A, sigmas, powers, f, d = lbfgs(covs, A, sigmas, powers,
-                                            self.avg_noise, pgtol=pgtol)
+                                            max_fun=n_it_lbfgs,
+                                            verbose=verbose)
+            self.d = d
             if verbose:
-                print('Done. Loss: {}'.format(loss0 - f))
+                print('Done. Loss gain: %.2f %%' % (100 * (loss0 - f) / f))
         self.A_ = A
         self.sigmas_ = sigmas
         self.powers_ = powers
@@ -165,3 +170,41 @@ class CovarianceFit(BaseEstimator, TransformerMixin):
         covs_approx = compute_covariances(self.A_, self.powers_, self.sigmas_,
                                           self.avg_noise, self.corr)
         return covs_approx
+
+
+class CovarianceFitNoise(BaseEstimator, TransformerMixin):
+    '''
+    Compute smican decomposition
+    '''
+    def __init__(self, covs_noise, n_sources, rng=None):
+        self.rng = check_random_state(rng)
+        self.n_sources = n_sources
+        self.covs_noise = covs_noise
+
+    def fit(self, covs, y=None, tol=1e-6, max_iter=10000, init='qndiag',
+            verbose=0):
+        self.covs_ = covs
+        covs_noise = self.covs_noise
+        n_s = self.n_sources
+        n_samples, n_components, _ = covs.shape
+        # Init
+        covs_avg = np.mean(covs, axis=0) - np.mean(covs_noise, axis=0)
+        A = np.linalg.eigh(covs_avg)[1][:, -n_s:]
+        if init == 'qndiag':
+            covs_pca = np.array([np.dot(A.T, np.dot(d, A))
+                                 for d in covs])
+            B, _ = qndiag(covs_pca)
+            A = np.dot(A, np.linalg.pinv(B))
+            powers = np.diagonal([B.dot(C.dot(B.T))
+                                  for C in covs_pca], axis1=1, axis2=2)
+            powers = np.maximum(powers, 1e-10)
+        else:
+            powers = np.array([np.maximum(np.linalg.eigvalsh(d)[-n_s:], 0)
+                               for d in covs - covs_noise])
+        A, powers, f, d = lbfgs_noise(covs, covs_noise, A, powers,
+                                      max_fun=max_iter,
+                                      verbose=verbose)
+        self.d = d
+        self.A_ = A
+        self.powers_ = powers
+        return self

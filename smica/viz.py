@@ -12,7 +12,7 @@ def plot_extended(S, sfreq, f_scale, powers, ica_mne, sort=True,
                   extension='pdf'):
     n_plots = 10
     n_s = S.shape[0]
-    n_f = n_s // n_plots
+    n_f = max(n_s // n_plots, 1)
     if sort is True:
         order = np.argsort(kurtosis(S, axis=1))[::-1]
     elif type(sort) is list:
@@ -21,7 +21,7 @@ def plot_extended(S, sfreq, f_scale, powers, ica_mne, sort=True,
         order = np.arange(n_s)
     if plot_env:
         n_col = 3
-        width_ratios = [3, 1, .3]
+        width_ratios = [2, 1, .3]
         figsize = (10, 8)
     else:
         n_col = 2
@@ -72,7 +72,8 @@ def plot_extended(S, sfreq, f_scale, powers, ica_mne, sort=True,
                 axe[ax_idx].set_xlabel('f (Hz)')
             else:
                 axe[ax_idx].set_xticklabels([])
-            axe[ax_idx].semilogy(f_scale, powers[:, idx])
+            axe[ax_idx].semilogy(f_scale, powers[:, idx], color='k',
+                                 linewidth=1)
 
             axe[ax_idx].grid()
             axe[ax_idx].set_yticklabels([])
@@ -80,8 +81,13 @@ def plot_extended(S, sfreq, f_scale, powers, ica_mne, sort=True,
             ica_mne._ica_names[idx] = ''
             _plot_ica_topomap(ica_mne, idx=idx, axes=axe[ax_idx + 1], title='',
                               sensors=False)
-            if number:
-                axe[0].set_ylabel('%d' % (i * n_plots + j + 1),
+            if number is not False:
+                if type(number) is np.ndarray:
+                    string = '%d, %.2f' % (i * n_plots + j,
+                                           number[i * n_plots + j])
+                else:
+                    string = '%d' % (i * n_plots + j + 1)
+                axe[0].set_ylabel(string,
                                   rotation=0)
             if j == 0:
                 if plot_env:

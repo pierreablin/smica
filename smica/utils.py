@@ -18,10 +18,8 @@ def loss(covs, A, sigma, source_powers, avg_noise=True, corr=False,
             R += np.diag(sigma)
         else:
             R += np.diag(sigma[j])
-        loss_value = cov.dot(np.linalg.inv(R)).trace()
-        loss_value += np.linalg.slogdet(R)[1]
-        if normalize:
-            loss_value -= np.linalg.slogdet(cov)[1] + p
+        CR = cov.dot(np.linalg.inv(R))
+        loss_value = CR.trace() - np.linalg.slogdet(CR)[1] - p
         loss_values[j] = loss_value
     if by_bin:
         return loss_values

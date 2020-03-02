@@ -14,6 +14,7 @@ from mne.epochs import BaseEpochs
 from mne.viz.topomap import _plot_ica_topomap
 
 from .core_smica import SMICA
+from .core_smican import SMICAN
 from .utils import fourier_sampling, itakura, loss
 from .dipolarity import dipolarity_using_sphere_model
 from .viz import plot_extended
@@ -89,7 +90,7 @@ class ICA(object):
     '''
     Mimics some the the mne.preprocessing ICA API.
     '''
-    def __init__(self, n_components, freqs, rng=None):
+    def __init__(self, n_components, freqs, room_noise=False, rng=None):
         '''
         n_components : number of sources
         freqs : the frequency intervals
@@ -97,10 +98,11 @@ class ICA(object):
         self.n_components = n_components
         self.freqs = freqs
         self.f_scale = 0.5 * (freqs[1:] + freqs[:-1])
+        self.room_noise = room_noise
         self.rng = check_random_state(rng)
 
     def fit(self, inst, picks=None, avg_noise=False, corr=False, exclude=None,
-            **kwargs):
+            inst_room=None, crop=None, **kwargs):
         '''
         Fits smica to inst (either raw or epochs)
         '''
@@ -119,16 +121,31 @@ class ICA(object):
             X = inst.get_data(picks=picks)
             n_epochs, _, _ = X.shape
             X = np.hstack(X)
+
         if exclude is not None:
             X = np.delete(X, exclude, axis=0)
         self.X = X
-        X /= np.std(X)
-        smica = SMICA(self.n_components, self.freqs, self.sfreq,
-                      avg_noise=self.avg_noise, corr=self.corr)
-        smica.fit(X, **kwargs)
+        normalization = np.std(X)
+        X /= normalization
+        if self.room_noise:
+            if isinstance(inst_room, BaseRaw):
+                X_room = inst_room.get_data(picks=picks)
+            else:
+                if crop is not None:
+                    inst_room = inst_room.load_data().crop(*crop)
+                X_room = inst_room.get_data(picks=picks)
+            if exclude is not None:
+                X_room = np.delete(X_room, exclude, axis=0)
+            X_room /= normalization
+            smica = SMICAN(X_room, self.n_components, self.freqs, self.sfreq)
+            smica.fit(X, **kwargs)
+        else:
+            smica = SMICA(self.n_components, self.freqs, self.sfreq,
+                          avg_noise=self.avg_noise, corr=self.corr)
+            smica.fit(X, **kwargs)
+            self.sigmas = smica.sigmas_
         self.powers = smica.powers_
         self.A = smica.A_
-        self.sigmas = smica.sigmas_
         self.smica = smica
         self.ica_mne = transfer_to_mne(self.A, self.inst, self.picks)
         return self
