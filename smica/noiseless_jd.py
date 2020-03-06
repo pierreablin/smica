@@ -17,7 +17,8 @@ memory = Memory(location, verbose=0)
 
 class JDIAG(SMICA):
     def __init__(self, n_components,
-                 freqs, sfreq, avg_noise=False, rng=None):
+                 freqs, sfreq, avg_noise=False, weighting=False,
+                 rng=None):
         '''
         n_components : number of sources
         freqs : the frequency intervals
@@ -28,6 +29,7 @@ class JDIAG(SMICA):
         self.sfreq = sfreq
         self.avg_noise = avg_noise
         self.f_scale = 0.5 * (freqs[1:] + freqs[:-1])
+        self.weighting = weighting
         self.rng = check_random_state(rng)
 
     def fit(self, X, y=None, pca='spectral', **kwargs):
@@ -40,6 +42,14 @@ class JDIAG(SMICA):
         C, ft, freq_idx = fourier_sampling(X, self.sfreq, self.freqs)
         n_mat, n_sensors, _ = C.shape
         self.C_ = C
+        # Compute weights
+        if self.weighting:
+            weights = np.zeros(n_mat)
+            for i, c in enumerate(C):
+                d = np.diag(c)
+                off = c - np.diag(d)
+                weights[i] = np.dot(off.ravel(), off.ravel()) / np.dot(d, d)
+            weights /= np.mean(weights)
         self.ft_ = ft
         self.freq_idx_ = freq_idx
         if pca == 'spectral':
@@ -48,7 +58,10 @@ class JDIAG(SMICA):
             u, d, _ = np.linalg.svd(X, full_matrices=False)
         whitener = (u / d).T[:self.n_components]
         C_ = _transform_set(whitener, C)
-        W, _ = qndiag(C_, **kwargs)
+        if self.weighting:
+            W, _ = qndiag(C_, weights=weights, **kwargs)
+        else:
+            W, _ = qndiag(C_, **kwargs)
         W = W.dot(whitener)
         self.A_ = np.linalg.pinv(W)
         self.powers_ = np.zeros((n_mat, self.n_components))
@@ -91,7 +104,12 @@ class JDIAG_mne(ICA):
             n_epochs, _, _ = X.shape
             X = np.hstack(X)
         self.X = X
-        X /= np.std(X)
+        normalization = np.std(X)
+        X /= normalization
+        self.normalization = normalization
+        scaling = np.std(X, axis=1)
+        X /= scaling[:, None]
+        self.scaling_ = scaling
         smica = JDIAG(self.n_components, self.freqs, self.sfreq,
                       self.avg_noise)
         smica.fit(X, pca=pca, **kwargs)

@@ -13,6 +13,7 @@ from mne.io import BaseRaw
 from mne.epochs import BaseEpochs
 from mne.viz.topomap import _plot_ica_topomap
 
+from mne.viz import plot_topomap
 from .core_smica import SMICA
 from .core_smican import SMICAN
 from .utils import fourier_sampling, itakura, loss
@@ -127,6 +128,10 @@ class ICA(object):
         self.X = X
         normalization = np.std(X)
         X /= normalization
+        self.normalization = normalization
+        scaling = np.std(X, axis=1)
+        X /= scaling[:, None]
+        self.scaling_ = scaling
         if self.room_noise:
             if isinstance(inst_room, BaseRaw):
                 X_room = inst_room.get_data(picks=picks)
@@ -137,15 +142,16 @@ class ICA(object):
             if exclude is not None:
                 X_room = np.delete(X_room, exclude, axis=0)
             X_room /= normalization
+            X_room /= scaling[:, None]
             smica = SMICAN(X_room, self.n_components, self.freqs, self.sfreq)
             smica.fit(X, **kwargs)
         else:
             smica = SMICA(self.n_components, self.freqs, self.sfreq,
                           avg_noise=self.avg_noise, corr=self.corr)
             smica.fit(X, **kwargs)
-            self.sigmas = smica.sigmas_
+            self.sigmas = smica.sigmas_ * scaling ** 2
         self.powers = smica.powers_
-        self.A = smica.A_
+        self.A = smica.A_ * scaling[:, None]
         self.smica = smica
         self.ica_mne = transfer_to_mne(self.A, self.inst, self.picks)
         return self
@@ -193,10 +199,20 @@ class ICA(object):
         return self.smica.compute_f_div(halve)
 
     def compute_sources(self, X=None, method='wiener'):
-        return self.smica.compute_sources(X, method=method)
+        if X is None:
+            X_s = None
+        else:
+            X_s = X / self.scaling_[:, None]
+        return self.smica.compute_sources(X_s,
+                                          method=method)
 
     def filter(self, X=None, bad_sources=[], method='wiener'):
-        return self.smica.filter(X, bad_sources, method=method)
+        if X is None:
+            X_s = None
+        else:
+            X_s = X / self.scaling_[:, None]
+        return self.smica.filter(X_s,
+                                 bad_sources, method=method)
 
     def compute_mutual_information(self, X=None, method='wiener'):
         S = self.compute_sources(X=X, method=method)
@@ -210,7 +226,7 @@ class ICA(object):
         return MI
 
     def compute_loss(self, X=None, **kwargs):
-        return self.smica.compute_loss(X, **kwargs)
+        return self.smica.compute_loss(X / self.scaling_[:, None], **kwargs)
 
     def cluster(self, mat, n_clusters, **kwargs):
         labels = self.smica.cluster(mat, n_clusters, **kwargs)
@@ -245,3 +261,12 @@ class ICA(object):
         plot_extended(sources,
                       self.sfreq, self.f_scale,
                       self.powers, self.ica_mne, **kwargs)
+
+    def plot_noise_topo(self, pick_types='mag'):
+        picks = mne.pick_types(self.info, meg=pick_types)
+        f, axes = plt.subplots(2, 5)
+        powers = np.sqrt(self.sigmas) * self.normalization
+        for j, ax in enumerate(axes.ravel()):
+            f_idx = int(len(self.freqs) / 10)
+            power = powers[f_idx, picks]
+            plot_topomap()

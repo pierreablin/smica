@@ -69,11 +69,11 @@ def func_grad(x, p, q, n, C_list):
 
 
 @memory.cache(ignore=['verbose'])
-def lbfgs(C_list, A0, N0, P0, max_fun=15000, verbose=False):
+def lbfgs(C_list, A0, N0, P0, max_fun=15000, verbose=False, p_min=1e-10):
     p, q = A0.shape
     n, _, _ = C_list.shape
     bounds = [(None, None), ] * (p * q)
-    bounds += [(0, None), ] * (p * n + q * n)
+    bounds += [(p_min, None), ] * (p * n + q * n)
     x0 = params_to_x(A0, P0, N0)
     if verbose:
         iprint = 50

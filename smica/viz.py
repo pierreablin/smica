@@ -37,6 +37,8 @@ def plot_extended(S, sfreq, f_scale, powers, ica_mne, sort=True,
                                               hspace=0.18,
                                               wspace=0.04))
         for j in range(n_plots):
+            if i * n_plots + j >= n_s:
+                break
             idx = order[i * n_plots + j]
             ax_idx = 0
             axe = ax[j]
