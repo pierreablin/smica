@@ -78,6 +78,10 @@ class JDIAG(SMICA):
             raise ValueError('Only method=pinv is implemented for JDIAG')
         return super().compute_sources(X=X, method=method)
 
+    def compute_sources(self, X=None, method='pinv'):
+        if method == 'wiener':
+            raise ValueError('Only method=pinv is implemented for JDIAG')
+        return super().compute_sources(X=X, method=method)
 
 class JDIAG_mne(ICA):
     def __init__(self, n_components, freqs, rng=None):
@@ -114,11 +118,8 @@ class JDIAG_mne(ICA):
                       self.avg_noise)
         smica.fit(X, pca=pca, **kwargs)
         self.powers = smica.powers_
-        self.A = smica.A_
-        self.sigmas = smica.sigmas_
+        self.A = smica.A_ * scaling[:, None]
+        self.sigmas = smica.sigmas_ * scaling ** 2
         self.smica = smica
         self.ica_mne = transfer_to_mne(self.A, self.inst, self.picks)
         return self
-
-    def compute_sources(self, X=None, method='pinv'):
-        return self.smica.compute_sources(X, method=method)

@@ -208,11 +208,12 @@ class ICA(object):
 
     def filter(self, X=None, bad_sources=[], method='wiener'):
         if X is None:
-            X_s = None
+            return self.smica.filter(None, bad_sources, method=method)
         else:
             X_s = X / self.scaling_[:, None]
-        return self.smica.filter(X_s,
-                                 bad_sources, method=method)
+            filtered = self.smica.filter(X_s,
+                                         bad_sources, method=method)
+            return filtered * self.scaling_[:, None]
 
     def compute_mutual_information(self, X=None, method='wiener'):
         S = self.compute_sources(X=X, method=method)
