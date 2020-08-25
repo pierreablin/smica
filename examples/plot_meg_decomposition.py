@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from smica import ICA, mutual_information_2d
+from smica import ICA, mutual_information_2d, JDIAG_mne, SOBI_mne, transfer_to_ica
 import mne
 from mne.datasets import sample
+from mne.preprocessing import ICA as ICA_mne
 from picard import picard
 
 from joblib import Memory
@@ -14,129 +15,63 @@ EPS = 1e-12
 # fetch data
 data_path = sample.data_path()
 raw_fname = data_path + '/MEG/sample/sample_audvis_raw.fif'
-event_fname = data_path + '/MEG/sample/sample_audvis_filt-0-40_raw-eve.fif'
+
 raw = mne.io.read_raw_fif(raw_fname, preload=True)
-# T = 20
-# raw.crop(0, T)
+
+raw_room = mne.io.read_raw_fif(data_path + '/MEG/sample/ernoise_raw.fif')
 picks = mne.pick_types(raw.info, meg='mag', eeg=False, eog=False,
                        stim=False, exclude='bads')
 
-n_bins = 20
-freqs = np.linspace(2, 35, n_bins + 1)
 
-raw.filter(2, 35)
-n_comp = 20
-# smica = ICA(n_components=n_comp, freqs=freqs, rng=0)
-# smica.fit(raw, picks=picks, verbose=100, tol=1e-7, em_it=10000, corr=True)
-# # P = smica.powers
-# # eigs = np.array([np.linalg.eigvalsh(p) for p in P])
-# # plt.semilogy(eigs.T[::-1])
-# # plt.show()
-# S = smica.compute_sources()
+def conf_mat(A, B):
+    _, n = A.shape
+    _, p = B.shape
+    A /= np.linalg.norm(A, axis=0)
+    B /= np.linalg.norm(B, axis=0)
+    return A.T.dot(B)
 
 
-def getent2(u, nbins=None):
-
-    """
-    This is a python translation of the getent2.m matlab function, which
-    is included in the code realeased with the plosone paper
-    "EEG independent sources are dipolar"
-    """
-    nu, Nu = u.shape
-
-    if nbins is None:
-        nbins = np.min([100, np.round(np.sqrt(Nu))])
-
-    Hu = np.zeros(nu)
-    deltau = np.zeros(nu)
-
-    for i in range(nu):
-
-        umax = np.max(u[i])
-        umin = np.min(u[i])
-
-        deltau[i] = (umax - umin) / float(nbins)
-
-        uu = \
-            1 + np.round((nbins - 1) * (u[i] - umin) / float(umax - umin))
-
-        temp = np.nonzero(np.diff(np.sort(uu)))[0] + 1
-
-        ##############################################################
-        # pmfr = np.diff(np.append(np.append(0, temp), Nu)) / float(Nu)
-
-        temp2 = np.zeros(len(temp) + 2)
-        temp2[-1] = Nu
-        temp2[1:-1] = temp
-        pmfr = np.diff(temp2) / float(Nu)
-
-        ##############################################################
-
-        Hu[i] = -np.sum(pmfr * np.log(pmfr)) + np.log(deltau[i])
-
-    return Hu, deltau
+def matching(corr):
+    corr = np.abs(corr)
+    n_s, _ = corr.shape
+    order = np.arange(n_s)
+    sources = set(range(n_s))
+    free = set(range(n_s))
+    while sources:
+        i, j = np.unravel_index(np.argmax(corr, axis=None), corr.shape)
+        corr[i, j] = - 1
+        if i in sources and j in free:
+            sources.remove(i)
+            free.remove(j)
+            order[i] = j
+    return order
 
 
-def get_mir(estimated_sources, sfreq=1000):
+n_bins = 40
+freqs = np.linspace(1, 70, n_bins + 1)
+n_comp = 40
+smica_room = ICA(10, freqs=freqs, rng=0).fit(raw_room, picks)
+jdiag_room = JDIAG_mne(10, freqs=freqs, rng=0).fit(raw_room, picks=picks)
+smica = ICA(n_comp, freqs=freqs, rng=0).fit(raw, picks=picks)
+to_plot_smica = [37, 38, 39, 20, 4, 3, 19, 8, 12, 2]
+raw.filter(1, 70)
+jdiag = JDIAG_mne(n_comp, freqs=freqs, rng=0).fit(raw, picks=picks)
+to_plot_jdiag = [2, 1, 0, 13, 34, 3, 20, 30, 5, 10]
+sobi = SOBI_mne(100, n_comp, freqs).fit(raw, picks=picks)
+to_plot_sobi = [2, 0, 8, 12, 20, 31, 3, 17, 9, 10]
+ifmx_ = ICA_mne(n_comp, random_state=0).fit(raw, picks=picks)
+ifmx = transfer_to_ica(raw, picks, freqs, ifmx_.get_sources(raw).get_data(),
+                       ifmx_.get_components())
+to_plot_ifmx = [1, 2, 0, 35, 33, 19, 3, 32, 25,  9]
+plot_args = dict(number=True, t_min=2, t_max=4)
 
-    h0 = 0
-    h, _ = getent2(estimated_sources)
+pow_lims = [(np.min(algo.powers), np.max(algo.powers)) for algo in [smica, jdiag, sobi, ifmx]]
+y_lim = 0.0001, 0.21
+for algo, sort, method, name in zip([smica, jdiag, sobi, ifmx],
+                                    [to_plot_smica, to_plot_jdiag,
+                                     to_plot_sobi, to_plot_ifmx],
+                                    ['wiener', 'pinv', 'pinv', 'pinv'],
+                                    ['smica', 'jdiag', 'sobi', 'ifmx']):
 
-    # Let's transform nats to kbits per second
-    # 1 nat = log2(exp(1)) bits
-    # EEG.srate is the sampling frequency
-    # 1kbit = 1000 bits
-    C = np.dot(estimated_sources, estimated_sources.T)
-    mir = (- h + .5 * np.linalg.slogdet(C)[1] / len(h)) * \
-        np.log2(np.exp(1)) * sfreq / 1000.
-
-    # mir is expressed in kbits / seconds
-    return mir
-
-
-def get_mi(S):
-    n_sources = S.shape[0]
-    MI = np.zeros((n_sources, n_sources))
-    for i in range(n_sources):
-        for j in range(i):
-            mi = mutual_information_2d(S[i], S[j], 1, False)
-            MI[i, j] = mi
-            MI[j, i] = mi
-    return MI
-
-
-@memory.cache()
-def get_sources(n_comp):
-    #
-    smica = ICA(n_components=n_comp, freqs=freqs, rng=0)
-    smica.fit(raw, picks=picks, tol=1e-7, em_it=10000, corr=True)
-    # P = smica.powers
-    # eigs = np.array([np.linalg.eigvalsh(p) for p in P])
-    # plt.semilogy(eigs.T[::-1])
-    # plt.show()
-    S = smica.compute_sources()
-    _, _, S_smica = picard(S, ortho=False, extended=False, max_iter=1000)
-    _, _, S_infomax = picard(raw.get_data(picks=picks), n_components=n_comp,
-                             ortho=False, extended=False, max_iter=1000)
-    S_smica /= np.sqrt(np.mean(S_smica ** 2, axis=1, keepdims=True))
-    S_infomax /= np.sqrt(np.mean(S_infomax ** 2, axis=1, keepdims=True))
-    return S, S_smica, S_infomax
-
-
-mi_S = []
-mi_I = []
-n_comps = [20]
-mir_S = []
-mir_I = []
-for n_comp in n_comps:
-    print(n_comp)
-    S, S_smica, S_infomax = get_sources(n_comp)
-    mir_smica = get_mir(S)
-    mi_s = get_mi(S_smica)
-    mi_i = get_mi(S_infomax)
-    mir_s = get_mir(S_smica)
-    mir_i = get_mir(S_infomax)
-# plt.plot(n_comps, [np.max(mi) for mi in mi_S], label='smica')
-# plt.plot(n_comps, [np.max(mi) for mi in mi_I], label='pca')
-# plt.legend()
-# plt.show()
+    algo.plot_extended(sources=algo.compute_sources(method=method),
+                       sort=sort, save=name, y_lim=y_lim, **plot_args)

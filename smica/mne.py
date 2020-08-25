@@ -1,4 +1,3 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -82,8 +81,10 @@ def transfer_to_ica(raw, picks, freqs, S, A):
     smica_.A_ = A
     smica_.sigmas_ = smica.sigmas
     smica_.powers_ = smica.powers
+    smica.scaling_ = np.ones(P)
     smica.smica = smica_
     smica.sfreq = sfreq
+    smica.smica.X = raw.get_data(picks=picks)
     return smica
 
 
@@ -198,13 +199,12 @@ class ICA(object):
     def compute_f_div(self, halve=False):
         return self.smica.compute_f_div(halve)
 
-    def compute_sources(self, X=None, method='wiener'):
+    def compute_sources(self, X=None, **kwargs):
         if X is None:
             X_s = None
         else:
             X_s = X / self.scaling_[:, None]
-        return self.smica.compute_sources(X_s,
-                                          method=method)
+        return self.smica.compute_sources(X_s, **kwargs)
 
     def filter(self, X=None, bad_sources=[], method='wiener'):
         if X is None:

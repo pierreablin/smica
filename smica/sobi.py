@@ -117,7 +117,7 @@ def _joint_diag(C, max_iter, tol=1e-7, theta=0.5, max_ls_tries=20,
 
 
 @memory.cache(ignore=['verbose'])
-def sobi(X, p, n_components=None, lag0=True,
+def sobi(X, lags, n_components=None,
          tol=1e-7, max_iter=1000, verbose=False):
     """
     Use sobi for source estimation
@@ -125,6 +125,7 @@ def sobi(X, p, n_components=None, lag0=True,
     p :  number of time lags to use
     """
     n_sensors, n_samples = X.shape
+    p = len(lags)
     if n_components is None:
         n_components = n_sensors
     u, d, _ = np.linalg.svd(X, full_matrices=False)
@@ -133,13 +134,9 @@ def sobi(X, p, n_components=None, lag0=True,
     del u, d
     Y = whitener.dot(X)
     C = np.zeros((p, n_components, n_components))
-    if lag0:
-        lags = range(p)
-    else:
-        lags = range(1, p)
-    for i in lags:
-        t = n_samples - i
-        C[i] = np.dot(Y[:, -t:], Y[:, i:].T) / t
+    for i, lag in enumerate(lags):
+        t = n_samples - lag
+        C[i] = np.dot(Y[:, -t:], Y[:, lag:].T) / t
     W = _joint_diag(C, max_iter=max_iter, tol=tol, verbose=verbose)
     return W.dot(whitener)
 
@@ -153,12 +150,20 @@ class SOBI(SMICA):
         sfreq : sampling frequency
         '''
         self.p = p
+        self.lags = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9,
+                              10, 12, 14, 16, 18, 20,
+                              25, 30, 35, 40, 45, 50,
+                              55, 60, 65, 70, 80, 90, 95, 100,
+                              120, 140, 160, 180, 200, 220,
+                              240, 260, 280, 300]) * sfreq / 1000
+        self.lags = self.lags.astype(int)
         self.n_components = n_components
         self.freqs = freqs
         self.sfreq = sfreq
         self.avg_noise = avg_noise
         self.f_scale = 0.5 * (freqs[1:] + freqs[:-1])
         self.rng = check_random_state(rng)
+        self.filtering_method = 'pinv'
 
     def fit(self, X, y=None, **kwargs):
         '''
@@ -170,7 +175,7 @@ class SOBI(SMICA):
         self.C_ = C
         self.ft_ = ft
         self.freq_idx_ = freq_idx
-        W = sobi(X, self.p, self.n_components, **kwargs)
+        W = sobi(X, self.lags, self.n_components, **kwargs)
         self.A_ = np.linalg.pinv(W)
         self.powers_ = np.zeros((n_mat, self.n_components))
         for i in range(n_mat):

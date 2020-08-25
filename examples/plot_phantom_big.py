@@ -109,7 +109,9 @@ def process_one(dipole_no, amp, n_components, crop_idx, crop_len=None):
     good = np.argmin(e_4[0])
     e4 = [e_4[0][good], e_4[1][good]]
     crop_str = crop_len if crop_len is not None else 0
-    np.save('results/phantom_%d_%d_%d_%d_%d.npy' % (dipole_no, amp, n_components, crop_idx, crop_str), np.array([e1, e2, e3, e4]))
+    np.save('results/phantom_%d_%d_%d_%d_%d.npy' %
+            (dipole_no, amp, n_components, crop_idx, crop_str),
+            np.array([e1, e2, e3, e4]))
     print(e1, e2, e3, e4)
     return e1, e2, e3, e4
 

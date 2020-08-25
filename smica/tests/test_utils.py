@@ -41,4 +41,4 @@ def test_loss(avg_noise):
         sigmas = np.abs(rng.randn(n_epochs, p))
     powers = np.abs(rng.randn(n_epochs, q))
     covs = compute_covariances(A, powers, sigmas, avg_noise)
-    assert loss(covs, A, sigmas, powers, avg_noise, normalize=True) == 0
+    assert loss(covs, A, sigmas, powers, avg_noise, normalize=True) < 1e-10

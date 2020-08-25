@@ -31,6 +31,7 @@ class JDIAG(SMICA):
         self.f_scale = 0.5 * (freqs[1:] + freqs[:-1])
         self.weighting = weighting
         self.rng = check_random_state(rng)
+        self.filtering_method = 'pinv'
 
     def fit(self, X, y=None, pca='spectral', **kwargs):
         '''
@@ -82,6 +83,7 @@ class JDIAG(SMICA):
         if method == 'wiener':
             raise ValueError('Only method=pinv is implemented for JDIAG')
         return super().compute_sources(X=X, method=method)
+
 
 class JDIAG_mne(ICA):
     def __init__(self, n_components, freqs, rng=None):

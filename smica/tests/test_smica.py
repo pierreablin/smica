@@ -60,5 +60,5 @@ def test_filter(avg_noise):
                   avg_noise=avg_noise, rng=rng)
     smica.fit(X, tol=1e-1)
     bad_sources = [1, 2]
-    X_f = smica.filter(bad_sources)
+    X_f = smica.filter(bad_sources=bad_sources)
     assert X_f.shape == X.shape

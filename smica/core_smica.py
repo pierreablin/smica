@@ -40,6 +40,7 @@ class SMICA(object):
         self.f_scale = 0.5 * (freqs[1:] + freqs[:-1])
         self.corr = corr
         self.rng = check_random_state(rng)
+        self.filtering_method = 'wiener'
 
     def fit(self, X, y=None, **kwargs):
         '''
@@ -112,7 +113,9 @@ class SMICA(object):
                 X = self.X
             return np.linalg.pinv(self.A_).dot(X)
 
-    def filter(self, X=None, bad_sources=[], method='wiener'):
+    def filter(self, X=None, bad_sources=[], method=None):
+        if method is None:
+            method = self.filtering_method
         S = self.compute_sources(X, method=method)
         S[bad_sources] = 0.
         return np.dot(self.A_, S)

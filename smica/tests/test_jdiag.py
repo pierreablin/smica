@@ -48,8 +48,8 @@ def test_filter():
     X = rng.randn(p, n)
     sfreq = 10
     freqs = np.linspace(1, 5, 3)
-    jdiag = JDIAG(n_components, freqs, sfreq,  rng=rng)
+    jdiag = JDIAG(n_components, freqs, sfreq, rng=rng)
     jdiag.fit(X, tol=1e-1, max_iter=10)
     bad_sources = [1, 2]
-    X_f = jdiag.filter(bad_sources)
+    X_f = jdiag.filter(bad_sources=bad_sources)
     assert X_f.shape == X.shape
