@@ -1,0 +1,335 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>XXX &#8212; smica 0.0dev documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="shortcut icon" href="../_static/smica_logo.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          smica</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.0dev</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="index.html">Examples</a></li>
+                <li><a href="../api.html">API</a></li>
+                <li><a href="https://github.com/pierreablin/smica">GitHub</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Documentation</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">XXX</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/auto_examples/meg_evoked.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container content-container">
+  
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-auto-examples-meg-evoked-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
+</div>
+<div class="sphx-glr-example-title section" id="xxx">
+<span id="sphx-glr-auto-examples-meg-evoked-py"></span><h1>XXX<a class="headerlink" href="#xxx" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># We compare smica with other denoising techniques to obtain clain erps</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">smica</span> <span class="kn">import</span> <span class="n">ICA</span><span class="p">,</span> <span class="n">transfer_to_ica</span>
+<span class="kn">import</span> <span class="nn">mne</span>
+<span class="kn">from</span> <span class="nn">mne.datasets</span> <span class="kn">import</span> <span class="n">sample</span>
+<span class="kn">from</span> <span class="nn">mne.preprocessing</span> <span class="kn">import</span> <span class="n">ICA</span> <span class="k">as</span> <span class="n">ICA_mne</span>
+
+
+<span class="n">fontsize</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">rc</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;pdf.fonttype&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
+    <span class="s2">&quot;text.usetex&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">&quot;font.size&quot;</span><span class="p">:</span> <span class="n">fontsize</span><span class="p">,</span>
+    <span class="s2">&quot;xtick.labelsize&quot;</span><span class="p">:</span> <span class="n">fontsize</span><span class="p">,</span>
+    <span class="s2">&quot;ytick.labelsize&quot;</span><span class="p">:</span> <span class="n">fontsize</span><span class="p">,</span>
+    <span class="s2">&quot;text.latex.preview&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rc</span><span class="p">)</span>
+<span class="n">data_path</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">data_path</span><span class="p">()</span>
+<span class="n">raw_fname</span> <span class="o">=</span> <span class="n">data_path</span> <span class="o">+</span> <span class="s2">&quot;/MEG/sample/sample_audvis_raw.fif&quot;</span>
+<span class="n">event_fname</span> <span class="o">=</span> <span class="n">data_path</span> <span class="o">+</span> <span class="s2">&quot;/MEG/sample/sample_audvis_filt-0-40_raw-eve.fif&quot;</span>
+<span class="n">raw</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read_raw_fif</span><span class="p">(</span><span class="n">raw_fname</span><span class="p">,</span> <span class="n">preload</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">picks</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">pick_types</span><span class="p">(</span>
+    <span class="n">raw</span><span class="o">.</span><span class="n">info</span><span class="p">,</span> <span class="n">meg</span><span class="o">=</span><span class="s2">&quot;mag&quot;</span><span class="p">,</span> <span class="n">eeg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">eog</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stim</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="s2">&quot;bads&quot;</span>
+<span class="p">)</span>
+<span class="n">raw</span><span class="o">.</span><span class="n">set_eeg_reference</span><span class="p">(</span><span class="s2">&quot;average&quot;</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># set EEG average reference</span>
+<span class="n">events</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">find_events</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+<span class="n">tmin</span><span class="p">,</span> <span class="n">tmax</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.5</span>
+<span class="n">event_id</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Auditory/Left&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;Auditory/Right&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">&quot;Visual/Left&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="s2">&quot;Visual/Right&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">reject</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">grad</span><span class="o">=</span><span class="mf">4000e-13</span><span class="p">,</span> <span class="n">mag</span><span class="o">=</span><span class="mf">4e-12</span><span class="p">,</span> <span class="n">eog</span><span class="o">=</span><span class="mf">150e-6</span><span class="p">)</span>
+<span class="c1"># Fit smica</span>
+<span class="n">freqs</span> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.linspace.html#numpy.linspace" title="numpy.linspace" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">linspace</span></a><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">41</span><span class="p">)</span>
+<span class="n">smica</span> <span class="o">=</span> <span class="n">ICA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">freqs</span><span class="o">=</span><span class="n">freqs</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="p">)</span>
+
+
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="s2">&quot;darkred&quot;</span><span class="p">,</span> <span class="s2">&quot;forestgreen&quot;</span><span class="p">,</span> <span class="s2">&quot;royalblue&quot;</span><span class="p">,</span> <span class="s2">&quot;orange&quot;</span><span class="p">]</span>
+
+<span class="c1"># Plot the clusters</span>
+
+<span class="c1"># smica.plot_extended(sort=False)</span>
+
+<span class="n">bad_sources</span> <span class="o">=</span> <span class="p">[</span><span class="mi">17</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">19</span><span class="p">]</span>
+
+<span class="n">X_filtered</span> <span class="o">=</span> <span class="n">smica</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+    <span class="n">raw</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">picks</span><span class="p">],</span> <span class="n">bad_sources</span><span class="o">=</span><span class="n">bad_sources</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;wiener&quot;</span>
+<span class="p">)</span>
+<span class="n">raw_filtered</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">raw_filtered</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">picks</span><span class="p">]</span> <span class="o">=</span> <span class="n">X_filtered</span>
+
+<span class="n">raw</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">70</span><span class="p">)</span>
+<span class="n">ica</span> <span class="o">=</span> <span class="n">ICA_mne</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;fastica&quot;</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">ica</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="o">=</span><span class="n">picks</span><span class="p">)</span>
+
+<span class="n">sources</span> <span class="o">=</span> <span class="n">ica</span><span class="o">.</span><span class="n">get_sources</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+<span class="n">ica_mne</span> <span class="o">=</span> <span class="n">transfer_to_ica</span><span class="p">(</span>
+    <span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">ica</span><span class="o">.</span><span class="n">get_sources</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="n">get_data</span><span class="p">(),</span> <span class="n">ica</span><span class="o">.</span><span class="n">get_components</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># ica_mne.plot_extended(sources, sort=False)</span>
+<span class="n">bads_infomax</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="n">X_ifmx</span> <span class="o">=</span> <span class="n">ica_mne</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+    <span class="n">raw</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">picks</span><span class="p">],</span> <span class="n">bad_sources</span><span class="o">=</span><span class="n">bads_infomax</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pinv&quot;</span>
+<span class="p">)</span>
+<span class="n">raw_ifmx</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">raw_ifmx</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">picks</span><span class="p">]</span> <span class="o">=</span> <span class="n">X_ifmx</span>
+<span class="c1"># We identify that clusters 6, 7, 8, 9 correspond to noise</span>
+
+<span class="n">max_raw</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">max_raw</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">maxwell_filter</span><span class="p">(</span><span class="n">max_raw</span><span class="p">)</span>
+<span class="n">setups</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">setups</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;raw&quot;</span><span class="p">:</span> <span class="n">raw</span><span class="p">,</span> <span class="s2">&quot;proj&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Unfiltered&quot;</span><span class="p">})</span>
+<span class="n">setups</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;raw&quot;</span><span class="p">:</span> <span class="n">raw</span><span class="p">,</span> <span class="s2">&quot;proj&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;SSP&quot;</span><span class="p">})</span>
+<span class="n">setups</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;raw&quot;</span><span class="p">:</span> <span class="n">max_raw</span><span class="p">,</span> <span class="s2">&quot;proj&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Maxwell&quot;</span><span class="p">})</span>
+<span class="n">setups</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;raw&quot;</span><span class="p">:</span> <span class="n">raw_ifmx</span><span class="p">,</span> <span class="s2">&quot;proj&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Infomax&quot;</span><span class="p">})</span>
+<span class="n">setups</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;raw&quot;</span><span class="p">:</span> <span class="n">raw_filtered</span><span class="p">,</span> <span class="s2">&quot;proj&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;SMICA&quot;</span><span class="p">})</span>
+<span class="c1"># Epochs the signal and observe the average auditory response</span>
+
+<span class="n">f</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.subplots.html#matplotlib.pyplot.subplots" title="matplotlib.pyplot.subplots" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">subplots</span></a><span class="p">(</span>
+    <span class="mi">4</span><span class="p">,</span>
+    <span class="mi">3</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+    <span class="n">gridspec_kw</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">width_ratios</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">],</span>
+        <span class="n">top</span><span class="o">=</span><span class="mf">0.91</span><span class="p">,</span>
+        <span class="n">bottom</span><span class="o">=</span><span class="mf">0.075</span><span class="p">,</span>
+        <span class="n">left</span><span class="o">=</span><span class="mf">0.04</span><span class="p">,</span>
+        <span class="n">right</span><span class="o">=</span><span class="mf">0.98</span><span class="p">,</span>
+        <span class="n">hspace</span><span class="o">=</span><span class="mf">0.215</span><span class="p">,</span>
+        <span class="n">wspace</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">expes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Auditory/Right&quot;</span><span class="p">,</span> <span class="s2">&quot;Auditory/Left&quot;</span><span class="p">,</span> <span class="s2">&quot;Visual/Right&quot;</span><span class="p">,</span> <span class="s2">&quot;Visual/Left&quot;</span><span class="p">]</span>
+<span class="n">peaks</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">160</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span> <span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span> <span class="p">(</span><span class="mi">155</span><span class="p">,</span> <span class="mi">210</span><span class="p">),</span> <span class="p">(</span><span class="mi">190</span><span class="p">,</span> <span class="mi">260</span><span class="p">)]</span>
+<span class="k">for</span> <span class="n">ee</span><span class="p">,</span> <span class="p">(</span><span class="n">expe</span><span class="p">,</span> <span class="n">peak</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">expes</span><span class="p">,</span> <span class="n">peaks</span><span class="p">)):</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="n">ee</span><span class="p">]</span>
+    <span class="n">evokeds</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">setup</span> <span class="ow">in</span> <span class="n">setups</span><span class="p">:</span>
+        <span class="n">epochs</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">Epochs</span><span class="p">(</span>
+            <span class="n">setup</span><span class="p">[</span><span class="s2">&quot;raw&quot;</span><span class="p">],</span>
+            <span class="n">events</span><span class="o">=</span><span class="n">events</span><span class="p">,</span>
+            <span class="n">event_id</span><span class="o">=</span><span class="n">event_id</span><span class="p">,</span>
+            <span class="n">tmin</span><span class="o">=</span><span class="n">tmin</span><span class="p">,</span>
+            <span class="n">tmax</span><span class="o">=</span><span class="n">tmax</span><span class="p">,</span>
+            <span class="n">baseline</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+            <span class="n">proj</span><span class="o">=</span><span class="n">setup</span><span class="p">[</span><span class="s2">&quot;proj&quot;</span><span class="p">],</span>
+            <span class="n">reject</span><span class="o">=</span><span class="n">reject</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">evokeds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">epochs</span><span class="p">[</span><span class="n">expe</span><span class="p">]</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">picks</span><span class="o">=</span><span class="n">picks</span><span class="p">))</span>
+
+    <span class="c1"># Plot average</span>
+
+    <span class="n">sfreq</span> <span class="o">=</span> <span class="n">smica</span><span class="o">.</span><span class="n">sfreq</span>
+    <span class="n">n_samples</span> <span class="o">=</span> <span class="n">evokeds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">t_large</span> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.linspace.html#numpy.linspace" title="numpy.linspace" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">linspace</span></a><span class="p">(</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">n_samples</span> <span class="o">/</span> <span class="n">sfreq</span> <span class="o">-</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span>
+    <span class="n">markers</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">]</span>
+    <span class="n">markevery</span> <span class="o">=</span> <span class="mf">0.2</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">evoked</span><span class="p">,</span> <span class="n">marker</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">([</span><span class="s2">&quot;Raw&quot;</span><span class="p">,</span> <span class="s2">&quot;SSP&quot;</span><span class="p">,</span> <span class="s2">&quot;Maxwell&quot;</span><span class="p">,</span> <span class="s2">&quot;Infomax&quot;</span><span class="p">,</span> <span class="s2">&quot;SMICA&quot;</span><span class="p">],</span> <span class="n">evokeds</span><span class="p">,</span> <span class="n">markers</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="c1"># if ee == 1:</span>
+        <span class="c1">#     evoked.plot(titles=name)</span>
+        <span class="n">to_plot</span> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.sqrt.html#numpy.sqrt" title="numpy.sqrt" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-data"><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span></a><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.mean.html#numpy.mean" title="numpy.mean" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">mean</span></a><span class="p">(</span><span class="n">evoked</span><span class="o">.</span><span class="n">data</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="n">y_</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">expe</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_large</span><span class="p">,</span> <span class="n">to_plot</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="c1"># marker=marker, markevery=markevery)</span>
+        <span class="n">to_plot_</span> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.sqrt.html#numpy.sqrt" title="numpy.sqrt" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-data"><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span></a><span class="p">(</span>
+            <a href="https://numpy.org/doc/stable/reference/generated/numpy.mean.html#numpy.mean" title="numpy.mean" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">mean</span></a><span class="p">(</span><span class="n">evoked</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">crop</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="c1"># to_plot_ = filter_data(to_plot_, 100, None, 5)</span>
+        <span class="n">t_zoom</span> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.linspace.html#numpy.linspace" title="numpy.linspace" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">linspace</span></a><span class="p">(</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">to_plot_</span><span class="p">)</span> <span class="o">/</span> <span class="n">sfreq</span> <span class="o">-</span> <span class="mf">0.2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">to_plot_</span><span class="p">))</span>
+        <span class="c1"># ax[1].plot(t_zoom, to_plot_, color=colors[i], alpha=0.5)</span>
+        <span class="c1"># avg = np.mean(to_plot_)</span>
+        <span class="c1"># ax[1].axhline(avg, color=colors[i], linewidth=2)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">t_zoom</span><span class="p">,</span> <span class="n">to_plot_</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span>
+        <span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">t_zoom</span><span class="p">,</span>
+            <a href="https://numpy.org/doc/stable/reference/generated/numpy.mean.html#numpy.mean" title="numpy.mean" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">mean</span></a><span class="p">(</span><span class="n">to_plot_</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ones.html#numpy.ones" title="numpy.ones" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">ones</span></a><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t_zoom</span><span class="p">)),</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="n">marker</span><span class="o">=</span><span class="n">marker</span><span class="p">,</span>
+            <span class="n">markevery</span><span class="o">=</span><span class="n">markevery</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># ax[0].set_yscale(&#39;log&#39;)</span>
+        <span class="c1"># sl = range(180, 260)</span>
+        <span class="n">sl</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">peak</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">peak</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">ee</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_large</span><span class="p">[</span><span class="n">sl</span><span class="p">],</span> <span class="n">to_plot</span><span class="p">[</span><span class="n">sl</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="c1"># marker=marker, markevery=markevery)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_large</span><span class="p">[</span><span class="n">sl</span><span class="p">],</span> <span class="n">to_plot</span><span class="p">[</span><span class="n">sl</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="c1"># marker=marker, markevery=markevery)</span>
+        <span class="k">if</span> <span class="n">ee</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Total evoked response&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Zoom on t&lt;0&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Zoom on the peak&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">ax</span><span class="p">[</span><span class="n">u</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
+            <span class="n">ax</span><span class="p">[</span><span class="n">u</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">([])</span>
+            <span class="k">if</span> <span class="n">ee</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">t_</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="n">u</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time (s.)&quot;</span><span class="p">)</span>
+
+        <span class="c1"># to_plot = np.std(evoked.data, axis=0)</span>
+        <span class="c1"># ax[1, 0].plot(t_large, to_plot)</span>
+        <span class="c1"># ax[1, 1].plot(t_large[sl], to_plot[sl], label=name)</span>
+<span class="n">l_</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper center&quot;</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">evokeds</span><span class="p">))</span>
+<a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.savefig.html#matplotlib.pyplot.savefig" title="matplotlib.pyplot.savefig" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">savefig</span></a><span class="p">(</span>
+    <span class="s2">&quot;figures/evoked.pdf&quot;</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">,</span> <span class="n">bbox_extra_artists</span><span class="o">=</span><span class="p">[</span><span class="n">l_</span><span class="p">,</span> <span class="n">t_</span><span class="p">,</span> <span class="n">y_</span><span class="p">]</span>
+<span class="p">)</span>
+<a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.show.html#matplotlib.pyplot.show" title="matplotlib.pyplot.show" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">show</span></a><span class="p">()</span>
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.000 seconds)</p>
+<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-meg-evoked-py">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/53cfc0a44f223e63d4b6305ffa6d9072/meg_evoked.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">meg_evoked.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/f0085c9b4c5b7d7761ddb9941fa755d2/meg_evoked.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">meg_evoked.ipynb</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+</div>
+
+<!-- Github "fork me" ribbon -->
+<a href="https://github.com/pierreablin/smica"><img style="position: absolute; top: 50px; right: 0; border: 0;" 
+src="https://camo.githubusercontent.com/652c5b9acfaddf3a9c326fa6bde407b87f7be0f4/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6f72616e67655f6666373630302e706e67"
+alt="Fork me on GitHub"
+data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png"></a>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020-2021, Pierre Ablin.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

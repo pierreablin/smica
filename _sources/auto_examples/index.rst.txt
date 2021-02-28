@@ -1,0 +1,296 @@
+:orphan:
+
+
+
+.. _sphx_glr_auto_examples:
+
+.. _general_examples:
+
+Examples Gallery
+================
+
+.. contents:: Contents
+   :local:
+   :depth: 3
+
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Simple SMICA Example">
+
+.. only:: html
+
+ .. figure:: /auto_examples/images/thumb/sphx_glr_smica_example_thumb.png
+     :alt: Simple SMICA Example
+
+     :ref:`sphx_glr_auto_examples_smica_example.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/smica_example
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Simple CovarianceFit Example">
+
+.. only:: html
+
+ .. figure:: /auto_examples/images/thumb/sphx_glr_covfit_example_thumb.png
+     :alt: Simple CovarianceFit Example
+
+     :ref:`sphx_glr_auto_examples_covfit_example.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/covfit_example
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="XXX">
+
+.. only:: html
+
+ .. figure:: /auto_examples/images/thumb/sphx_glr_meg_loss_comps_thumb.png
+     :alt: XXX
+
+     :ref:`sphx_glr_auto_examples_meg_loss_comps.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/meg_loss_comps
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="XXX">
+
+.. only:: html
+
+ .. figure:: /auto_examples/images/thumb/sphx_glr_eegbci_thumb.png
+     :alt: XXX
+
+     :ref:`sphx_glr_auto_examples_eegbci.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/eegbci
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="XXX">
+
+.. only:: html
+
+ .. figure:: /auto_examples/images/thumb/sphx_glr_meg_room_thumb.png
+     :alt: XXX
+
+     :ref:`sphx_glr_auto_examples_meg_room.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/meg_room
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="XXX">
+
+.. only:: html
+
+ .. figure:: /auto_examples/images/thumb/sphx_glr_meg_decomposition_thumb.png
+     :alt: XXX
+
+     :ref:`sphx_glr_auto_examples_meg_decomposition.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/meg_decomposition
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="XXX">
+
+.. only:: html
+
+ .. figure:: /auto_examples/images/thumb/sphx_glr_meg_room_noise_separation_thumb.png
+     :alt: XXX
+
+     :ref:`sphx_glr_auto_examples_meg_room_noise_separation.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/meg_room_noise_separation
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="XXX">
+
+.. only:: html
+
+ .. figure:: /auto_examples/images/thumb/sphx_glr_room_noise_other_data_thumb.png
+     :alt: XXX
+
+     :ref:`sphx_glr_auto_examples_room_noise_other_data.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/room_noise_other_data
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="XXX">
+
+.. only:: html
+
+ .. figure:: /auto_examples/images/thumb/sphx_glr_meg_room_noise_thumb.png
+     :alt: XXX
+
+     :ref:`sphx_glr_auto_examples_meg_room_noise.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/meg_room_noise
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="XXX">
+
+.. only:: html
+
+ .. figure:: /auto_examples/images/thumb/sphx_glr_meg_phantom_big_thumb.png
+     :alt: XXX
+
+     :ref:`sphx_glr_auto_examples_meg_phantom_big.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/meg_phantom_big
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="XXX">
+
+.. only:: html
+
+ .. figure:: /auto_examples/images/thumb/sphx_glr_meg_evoked_thumb.png
+     :alt: XXX
+
+     :ref:`sphx_glr_auto_examples_meg_evoked.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/meg_evoked
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="XXX">
+
+.. only:: html
+
+ .. figure:: /auto_examples/images/thumb/sphx_glr_meg_room_camcan_thumb.png
+     :alt: XXX
+
+     :ref:`sphx_glr_auto_examples_meg_room_camcan.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/meg_room_camcan
+.. raw:: html
+
+    <div class="sphx-glr-clear"></div>
+
+
+
+.. only :: html
+
+ .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-gallery
+
+
+  .. container:: sphx-glr-download sphx-glr-download-python
+
+    :download:`Download all examples in Python source code: auto_examples_python.zip </auto_examples/auto_examples_python.zip>`
+
+
+
+  .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+    :download:`Download all examples in Jupyter notebooks: auto_examples_jupyter.zip </auto_examples/auto_examples_jupyter.zip>`
+
+
+.. only:: html
+
+ .. rst-class:: sphx-glr-signature
+
+    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_

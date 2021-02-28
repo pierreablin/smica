@@ -1,0 +1,6 @@
+smica.dipolarity
+================
+
+.. currentmodule:: smica
+
+.. autofunction:: dipolarity

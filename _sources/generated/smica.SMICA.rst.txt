@@ -1,0 +1,33 @@
+smica.SMICA
+===========
+
+.. currentmodule:: smica
+
+.. autoclass:: SMICA
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~SMICA.__init__
+      ~SMICA.cluster
+      ~SMICA.compute_approx_covs
+      ~SMICA.compute_f_div
+      ~SMICA.compute_filters
+      ~SMICA.compute_loss
+      ~SMICA.compute_sources
+      ~SMICA.degrees_freedom
+      ~SMICA.filter
+      ~SMICA.fit
+      ~SMICA.is_matrix
+      ~SMICA.save_params
+   
+   
+
+   
+   
+   

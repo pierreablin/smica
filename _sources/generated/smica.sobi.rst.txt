@@ -1,0 +1,6 @@
+smica.sobi
+==========
+
+.. currentmodule:: smica
+
+.. autodata:: sobi

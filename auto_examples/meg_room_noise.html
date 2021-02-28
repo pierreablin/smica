@@ -1,0 +1,304 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>XXX &#8212; smica 0.0dev documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="shortcut icon" href="../_static/smica_logo.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          smica</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.0dev</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="index.html">Examples</a></li>
+                <li><a href="../api.html">API</a></li>
+                <li><a href="https://github.com/pierreablin/smica">GitHub</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Documentation</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">XXX</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/auto_examples/meg_room_noise.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container content-container">
+  
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p>Click <a class="reference internal" href="#sphx-glr-download-auto-examples-meg-room-noise-py"><span class="std std-ref">here</span></a>
+to download the full example code</p>
+</div>
+<div class="sphx-glr-example-title section" id="xxx">
+<span id="sphx-glr-auto-examples-meg-room-noise-py"></span><h1>XXX<a class="headerlink" href="#xxx" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">mne</span>
+<span class="kn">from</span> <span class="nn">mne.preprocessing</span> <span class="kn">import</span> <span class="n">ICA</span> <span class="k">as</span> <span class="n">ICA_mne</span>
+<span class="kn">from</span> <span class="nn">mne.datasets</span> <span class="kn">import</span> <span class="n">sample</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.decomposition</span> <span class="kn">import</span> <a href="https://scikit-learn.org/stable/modules/generated/fastica-function.html#sklearn.decomposition.fastica" title="sklearn.decomposition.fastica" class="sphx-glr-backref-module-sklearn-decomposition sphx-glr-backref-type-py-function"><span class="n">fastica</span></a>
+<span class="kn">from</span> <span class="nn">picard</span> <span class="kn">import</span> <span class="n">picard</span>
+
+<span class="kn">from</span> <span class="nn">smica</span> <span class="kn">import</span> <span class="n">ICA</span><span class="p">,</span> <span class="n">transfer_to_ica</span><span class="p">,</span> <span class="n">JDIAG_mne</span><span class="p">,</span> <a href="../generated/smica.dipolarity.html#smica.dipolarity" title="smica.dipolarity" class="sphx-glr-backref-module-smica sphx-glr-backref-type-py-function"><span class="n">dipolarity</span></a>
+
+<span class="n">rc</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;pdf.fonttype&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
+    <span class="s2">&quot;text.usetex&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">&quot;font.size&quot;</span><span class="p">:</span> <span class="mi">14</span><span class="p">,</span>
+    <span class="s2">&quot;xtick.labelsize&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+    <span class="s2">&quot;ytick.labelsize&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+    <span class="s2">&quot;text.latex.preview&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rc</span><span class="p">)</span>
+
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;indianred&quot;</span><span class="p">,</span> <span class="s2">&quot;cornflowerblue&quot;</span><span class="p">,</span> <span class="s2">&quot;k&quot;</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">plot_powers</span><span class="p">(</span><span class="n">powers</span><span class="p">,</span> <span class="n">noise_sources</span><span class="p">,</span> <span class="n">muscle_source</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_components</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">noise_sources</span><span class="p">:</span>
+            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">colors</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">muscle_source</span><span class="p">:</span>
+            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">powers</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cols</span><span class="p">):</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">semilogy</span><span class="p">(</span><span class="n">freqs</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">p</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">col</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">semilogy</span><span class="p">([],</span> <span class="p">[],</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Brain sources&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">semilogy</span><span class="p">([],</span> <span class="p">[],</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Muscle source&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">semilogy</span><span class="p">([],</span> <span class="p">[],</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Room noise&quot;</span><span class="p">)</span>
+    <span class="n">x_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Frequency (Hz.)&quot;</span><span class="p">)</span>
+    <span class="n">y_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Power&quot;</span><span class="p">)</span>
+    <span class="n">t_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">freqs</span><span class="o">.</span><span class="n">max</span><span class="p">()])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+    <a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.savefig.html#matplotlib.pyplot.savefig" title="matplotlib.pyplot.savefig" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">savefig</span></a><span class="p">(</span>
+        <span class="s2">&quot;figures/</span><span class="si">%s</span><span class="s2">.pdf&quot;</span> <span class="o">%</span> <span class="n">title</span><span class="p">,</span>
+        <span class="n">bbox_extr_artists</span><span class="o">=</span><span class="p">[</span><span class="n">x_</span><span class="p">,</span> <span class="n">y_</span><span class="p">,</span> <span class="n">t_</span><span class="p">],</span>
+        <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># ax.legend(loc=&#39;upper center&#39;, ncol=2)</span>
+
+
+<span class="c1"># fetch data</span>
+<span class="n">data_path</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">data_path</span><span class="p">()</span>
+<span class="n">raw_fname</span> <span class="o">=</span> <span class="n">data_path</span> <span class="o">+</span> <span class="s2">&quot;/MEG/sample/sample_audvis_raw.fif&quot;</span>
+<span class="n">raw</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read_raw_fif</span><span class="p">(</span><span class="n">raw_fname</span><span class="p">,</span> <span class="n">preload</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">picks</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">pick_types</span><span class="p">(</span>
+    <span class="n">raw</span><span class="o">.</span><span class="n">info</span><span class="p">,</span> <span class="n">meg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">eeg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eog</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stim</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="s2">&quot;bads&quot;</span>
+<span class="p">)</span>
+
+<span class="n">n_bins</span> <span class="o">=</span> <span class="mi">40</span>
+<span class="n">n_components</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">freqs</span> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.linspace.html#numpy.linspace" title="numpy.linspace" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">linspace</span></a><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="n">n_bins</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+<span class="c1">#</span>
+<span class="n">jdiag</span> <span class="o">=</span> <span class="n">JDIAG_mne</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">n_components</span><span class="p">,</span> <span class="n">freqs</span><span class="o">=</span><span class="n">freqs</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">jdiag</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="o">=</span><span class="n">picks</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="c1"># jdiag2 = JDIAG_mne(n_components=n_components, freqs=freqs, rng=0)</span>
+<span class="c1"># jdiag2.fit(raw, pca=&#39;other&#39;, picks=picks, verbose=True, tol=1e-9,</span>
+<span class="c1">#            max_iter=1000)</span>
+
+
+<span class="n">smica</span> <span class="o">=</span> <span class="n">ICA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">n_components</span><span class="p">,</span> <span class="n">freqs</span><span class="o">=</span><span class="n">freqs</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">smica</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="o">=</span><span class="n">picks</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">em_it</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="n">corr</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Plot powers</span>
+
+<span class="c1"># noise_sources = [6, 8, 9]</span>
+<span class="c1"># muscle_source = [7]</span>
+<span class="c1"># f, ax = plt.subplots(figsize=(4, 2))</span>
+<span class="c1"># plot_powers(smica.powers, noise_sources, muscle_source, ax, &#39;smica&#39;)</span>
+<span class="c1"># plt.show()</span>
+<span class="c1"># #</span>
+<span class="c1"># #</span>
+<span class="n">raw</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">70</span><span class="p">)</span>
+<span class="n">ica</span> <span class="o">=</span> <span class="n">ICA_mne</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">n_components</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;fastica&quot;</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">ica</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="o">=</span><span class="n">picks</span><span class="p">)</span>
+
+<span class="n">ica_mne</span> <span class="o">=</span> <span class="n">transfer_to_ica</span><span class="p">(</span>
+    <span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">ica</span><span class="o">.</span><span class="n">get_sources</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="n">get_data</span><span class="p">(),</span> <span class="n">ica</span><span class="o">.</span><span class="n">get_components</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="n">smica</span><span class="o">.</span><span class="n">plot_clusters</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+
+<span class="n">source_clusters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="n">idx</span> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.where.html#numpy.where" title="numpy.where" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">where</span></a><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.logical_or.html#numpy.logical_or" title="numpy.logical_or" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-data"><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span></a><span class="p">(</span><span class="n">smica</span><span class="o">.</span><span class="n">labels</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">smica</span><span class="o">.</span><span class="n">labels</span> <span class="o">==</span> <span class="mi">2</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">brain_sources</span> <span class="o">=</span> <span class="n">smica</span><span class="o">.</span><span class="n">compute_sources</span><span class="p">()[</span><span class="n">idx</span><span class="p">]</span>
+<span class="n">K</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">picard</span><span class="p">(</span><span class="n">brain_sources</span><span class="p">)</span>
+<span class="n">picard_mix</span> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.linalg.pinv.html#numpy.linalg.pinv" title="numpy.linalg.pinv" class="sphx-glr-backref-module-numpy-linalg sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span></a><span class="p">(</span><span class="n">W</span> <span class="o">@</span> <span class="n">K</span><span class="p">)</span>
+<span class="n">brain_A</span> <span class="o">=</span> <span class="n">smica</span><span class="o">.</span><span class="n">A</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">]</span>
+<span class="n">fitted_A</span> <span class="o">=</span> <span class="n">brain_A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">picard_mix</span><span class="p">)</span>
+<span class="n">Asi</span> <span class="o">=</span> <span class="n">smica</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">Asi</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">fitted_A</span>
+
+
+<span class="n">brain_sources</span> <span class="o">=</span> <span class="n">smica</span><span class="o">.</span><span class="n">compute_sources</span><span class="p">()</span>
+<span class="n">K</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">picard</span><span class="p">(</span><span class="n">brain_sources</span><span class="p">)</span>
+<span class="n">picard_mix</span> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.linalg.pinv.html#numpy.linalg.pinv" title="numpy.linalg.pinv" class="sphx-glr-backref-module-numpy-linalg sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span></a><span class="p">(</span><span class="n">W</span> <span class="o">@</span> <span class="n">K</span><span class="p">)</span>
+<span class="n">fitted_A</span> <span class="o">=</span> <span class="n">smica</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">picard_mix</span><span class="p">)</span>
+<span class="n">brain_sources</span> <span class="o">=</span> <span class="n">smica</span><span class="o">.</span><span class="n">compute_sources</span><span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">picks</span><span class="o">=</span><span class="n">picks</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pinv&quot;</span><span class="p">)</span>
+<span class="n">K</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">picard</span><span class="p">(</span><span class="n">brain_sources</span><span class="p">)</span>
+<span class="n">picard_mix</span> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.linalg.pinv.html#numpy.linalg.pinv" title="numpy.linalg.pinv" class="sphx-glr-backref-module-numpy-linalg sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span></a><span class="p">(</span><span class="n">W</span> <span class="o">@</span> <span class="n">K</span><span class="p">)</span>
+<span class="n">fitted_A__</span> <span class="o">=</span> <span class="n">smica</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">picard_mix</span><span class="p">)</span>
+
+
+<span class="n">brain_sources</span> <span class="o">=</span> <span class="n">ica_mne</span><span class="o">.</span><span class="n">compute_sources</span><span class="p">(</span>
+    <span class="n">raw</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">picks</span><span class="o">=</span><span class="n">picks</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pinv&quot;</span>
+<span class="p">)</span>
+<span class="n">K</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">picard</span><span class="p">(</span><span class="n">brain_sources</span><span class="p">)</span>
+<span class="n">picard_mix</span> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.linalg.pinv.html#numpy.linalg.pinv" title="numpy.linalg.pinv" class="sphx-glr-backref-module-numpy-linalg sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span></a><span class="p">(</span><span class="n">W</span> <span class="o">@</span> <span class="n">K</span><span class="p">)</span>
+<span class="n">fitted_A_</span> <span class="o">=</span> <span class="n">smica</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">picard_mix</span><span class="p">)</span>
+
+
+<span class="n">brain_sources</span> <span class="o">=</span> <span class="n">ica_mne</span><span class="o">.</span><span class="n">compute_sources</span><span class="p">(</span>
+    <span class="n">raw</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">picks</span><span class="o">=</span><span class="n">picks</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pinv&quot;</span>
+<span class="p">)</span>
+<span class="n">K</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <a href="https://scikit-learn.org/stable/modules/generated/fastica-function.html#sklearn.decomposition.fastica" title="sklearn.decomposition.fastica" class="sphx-glr-backref-module-sklearn-decomposition sphx-glr-backref-type-py-function"><span class="n">fastica</span></a><span class="p">(</span><span class="n">brain_sources</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">picard_mix</span> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.linalg.pinv.html#numpy.linalg.pinv" title="numpy.linalg.pinv" class="sphx-glr-backref-module-numpy-linalg sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span></a><span class="p">(</span><span class="n">W</span> <span class="o">@</span> <span class="n">K</span><span class="p">)</span>
+<span class="n">fastica_</span> <span class="o">=</span> <span class="n">smica</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">picard_mix</span><span class="p">)</span>
+
+
+<span class="n">gofs</span> <span class="o">=</span> <a href="../generated/smica.dipolarity.html#smica.dipolarity" title="smica.dipolarity" class="sphx-glr-backref-module-smica sphx-glr-backref-type-py-function"><span class="n">dipolarity</span></a><span class="p">(</span><span class="n">smica</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">gofj</span> <span class="o">=</span> <a href="../generated/smica.dipolarity.html#smica.dipolarity" title="smica.dipolarity" class="sphx-glr-backref-module-smica sphx-glr-backref-type-py-function"><span class="n">dipolarity</span></a><span class="p">(</span><span class="n">jdiag</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">gofi</span> <span class="o">=</span> <a href="../generated/smica.dipolarity.html#smica.dipolarity" title="smica.dipolarity" class="sphx-glr-backref-module-smica sphx-glr-backref-type-py-function"><span class="n">dipolarity</span></a><span class="p">(</span><span class="n">ica_mne</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">gofsi</span> <span class="o">=</span> <a href="../generated/smica.dipolarity.html#smica.dipolarity" title="smica.dipolarity" class="sphx-glr-backref-module-smica sphx-glr-backref-type-py-function"><span class="n">dipolarity</span></a><span class="p">(</span><span class="n">Asi</span><span class="p">,</span> <span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">gofp</span> <span class="o">=</span> <a href="../generated/smica.dipolarity.html#smica.dipolarity" title="smica.dipolarity" class="sphx-glr-backref-module-smica sphx-glr-backref-type-py-function"><span class="n">dipolarity</span></a><span class="p">(</span><span class="n">fitted_A_</span><span class="p">,</span> <span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">gof_ss</span> <span class="o">=</span> <a href="../generated/smica.dipolarity.html#smica.dipolarity" title="smica.dipolarity" class="sphx-glr-backref-module-smica sphx-glr-backref-type-py-function"><span class="n">dipolarity</span></a><span class="p">(</span><span class="n">fitted_A__</span><span class="p">,</span> <span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">goff</span> <span class="o">=</span> <a href="../generated/smica.dipolarity.html#smica.dipolarity" title="smica.dipolarity" class="sphx-glr-backref-module-smica sphx-glr-backref-type-py-function"><span class="n">dipolarity</span></a><span class="p">(</span><span class="n">fastica_</span><span class="p">,</span> <span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">gof_subspace</span> <span class="o">=</span> <a href="../generated/smica.dipolarity.html#smica.dipolarity" title="smica.dipolarity" class="sphx-glr-backref-module-smica sphx-glr-backref-type-py-function"><span class="n">dipolarity</span></a><span class="p">(</span><span class="n">fitted_A</span><span class="p">,</span> <span class="n">raw</span><span class="p">,</span> <span class="n">picks</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.figure.html#matplotlib.pyplot.figure" title="matplotlib.pyplot.figure" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">figure</span></a><span class="p">()</span>
+<span class="c1"># plt.plot(np.sort(gofs), label=&#39;smica&#39;)</span>
+<a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.plot.html#matplotlib.pyplot.plot" title="matplotlib.pyplot.plot" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">plot</span></a><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.sort.html#numpy.sort" title="numpy.sort" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">sort</span></a><span class="p">(</span><span class="n">gofj</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;jdiag&quot;</span><span class="p">)</span>
+<a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.plot.html#matplotlib.pyplot.plot" title="matplotlib.pyplot.plot" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">plot</span></a><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.sort.html#numpy.sort" title="numpy.sort" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">sort</span></a><span class="p">(</span><span class="n">gofp</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;infomax&quot;</span><span class="p">)</span>
+<span class="c1"># plt.plot(np.sort(gofsi), label=&#39;smica + infomax&#39;)</span>
+<a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.plot.html#matplotlib.pyplot.plot" title="matplotlib.pyplot.plot" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">plot</span></a><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.sort.html#numpy.sort" title="numpy.sort" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">sort</span></a><span class="p">(</span><span class="n">gof_subspace</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;infomax on smica wiener&quot;</span><span class="p">)</span>
+<a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.plot.html#matplotlib.pyplot.plot" title="matplotlib.pyplot.plot" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">plot</span></a><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.sort.html#numpy.sort" title="numpy.sort" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">sort</span></a><span class="p">(</span><span class="n">gof_ss</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;infomax on smica pinv&quot;</span><span class="p">)</span>
+<span class="c1"># plt.plot(np.sort(goff), label=&#39;fastica&#39;)</span>
+<a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.xlabel.html#matplotlib.pyplot.xlabel" title="matplotlib.pyplot.xlabel" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span></a><span class="p">(</span><span class="s2">&quot;source&quot;</span><span class="p">)</span>
+<a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.ylabel.html#matplotlib.pyplot.ylabel" title="matplotlib.pyplot.ylabel" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span></a><span class="p">(</span><span class="s2">&quot;dipolarity&quot;</span><span class="p">)</span>
+<a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.legend.html#matplotlib.pyplot.legend" title="matplotlib.pyplot.legend" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">legend</span></a><span class="p">()</span>
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> ( 0 minutes  0.000 seconds)</p>
+<div class="sphx-glr-footer class sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-meg-room-noise-py">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/da352d2fb66fa4be856c7630421909d6/meg_room_noise.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">meg_room_noise.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/b27c15e59c1527cfed80a4b31aedb0ce/meg_room_noise.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">meg_room_noise.ipynb</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+</div>
+
+<!-- Github "fork me" ribbon -->
+<a href="https://github.com/pierreablin/smica"><img style="position: absolute; top: 50px; right: 0; border: 0;" 
+src="https://camo.githubusercontent.com/652c5b9acfaddf3a9c326fa6bde407b87f7be0f4/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6f72616e67655f6666373630302e706e67"
+alt="Fork me on GitHub"
+data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png"></a>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020-2021, Pierre Ablin.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

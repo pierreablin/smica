@@ -1,0 +1,27 @@
+smica.SMICAN
+============
+
+.. currentmodule:: smica
+
+.. autoclass:: SMICAN
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~SMICAN.__init__
+      ~SMICAN.compute_f_div
+      ~SMICAN.compute_sources
+      ~SMICAN.filter
+      ~SMICAN.fit
+      ~SMICAN.is_matrix
+   
+   
+
+   
+   
+   
