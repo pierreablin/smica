@@ -121,3 +121,4 @@ gen_modules
 generated
 
 *.pdf
+.DS_Store
