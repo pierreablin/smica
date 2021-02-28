@@ -43,6 +43,7 @@ if __name__ == "__main__":
               'mne',
               'qndiag',
               'scikit-learn',
+              'numba',
           ],
           classifiers=[
               'Intended Audience :: Science/Research',
