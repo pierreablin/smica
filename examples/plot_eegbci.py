@@ -14,7 +14,6 @@ from mne.datasets import eegbci
 from smica import ICA
 
 tmin, tmax = -1., 4.
-
 subject = 1
 runs = [6, 10, 14]  # motor imagery: hands vs feet
 
