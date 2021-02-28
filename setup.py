@@ -40,8 +40,8 @@ if __name__ == "__main__":
               'numpy >=1.14',
               'scipy >=0.18.1',
               'joblib',
-              'qndiag',
               'mne',
+              'https://github.com/pierreablin/qndiag/archive/master.zip',
           ],
           classifiers=[
               'Intended Audience :: Science/Research',
