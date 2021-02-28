@@ -61,7 +61,7 @@ def test_filter():
     X = rng.randn(p, n)
     sfreq = 10
     freqs = np.linspace(1, 5, 3)
-    sobi = SOBI(m, n_components, freqs, sfreq,  rng=rng)
+    sobi = SOBI(m, n_components, freqs, sfreq, rng=rng)
     sobi.fit(X, tol=1e-1)
     bad_sources = [1, 2]
     X_f = sobi.filter(bad_sources=bad_sources)

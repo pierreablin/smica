@@ -253,7 +253,7 @@ def em_algo(covs, A, sigmas_square, source_powers, corr, avg_noise,
                                   avg_noise,
                                   corr)
                 print('it {:5d}, loss: {:10.5e}, crit: {:04.2e}'.format(
-                        it, loss_print, criterion))
+                      it, loss_print, criterion))
 
     else:
         warnings.warn('Warning, em algorithm did not converge: '

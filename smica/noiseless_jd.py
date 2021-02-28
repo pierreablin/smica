@@ -80,11 +80,6 @@ class JDIAG(SMICA):
             raise ValueError('Only method=pinv is implemented for JDIAG')
         return super().compute_sources(X=X, method=method)
 
-    def compute_sources(self, X=None, method='pinv'):
-        if method == 'wiener':
-            raise ValueError('Only method=pinv is implemented for JDIAG')
-        return super().compute_sources(X=X, method=method)
-
 
 class JDIAG_mne(ICA):
     def __init__(self, n_components, freqs, rng=None):

@@ -99,7 +99,7 @@ def mutual_information(variables, k=1):
     '''
     if len(variables) < 2:
         raise AttributeError(
-                "Mutual information must involve at least 2 variables")
+            "Mutual information must involve at least 2 variables")
     all_vars = np.hstack(variables)
     return (sum([entropy(X, k=k) for X in variables])
             - entropy(all_vars, k=k))

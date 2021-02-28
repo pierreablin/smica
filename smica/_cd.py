@@ -56,10 +56,11 @@ def cd_algo(covs, A, sigmas_square, source_powers, avg_noise=False,
         if verbose:
             if (it - 1) % verbose == 0 and it > 0:
                 print('it {:5d}, loss: {:10.5e}, crit: {:04.2e}'.format(
-                        it, loss_old, criterion))
-        A_old = A.copy()
-        sigmas_old = sigmas_square.copy()
-        powers_old = source_powers.copy()
+                      it, loss_old, criterion))
+
+        # A_old = A.copy()
+        # sigmas_old = sigmas_square.copy()
+        # powers_old = source_powers.copy()
     else:
         warnings.warn('Warning, cd algorithm did not converge: '
                       'critertion %.2e' % criterion)
