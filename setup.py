@@ -42,6 +42,7 @@ if __name__ == "__main__":
               'joblib',
               'mne',
               'qndiag',
+              'scikit-learn',
           ],
           classifiers=[
               'Intended Audience :: Science/Research',
