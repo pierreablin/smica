@@ -102,7 +102,7 @@ class SMICA(object):
             else:
                 sigs = self.sigmas_
             for j, (sigma, power) in enumerate(zip(sigs, self.powers_)):
-                sl = np.arange(freq_idx[j], freq_idx[j+1])
+                sl = np.arange(freq_idx[j], freq_idx[j + 1])
                 W = wiener(self.A_, sigma, power, self.corr)
                 transf = np.dot(W, ft[:, sl])
                 ft_sources[:, sl] = transf

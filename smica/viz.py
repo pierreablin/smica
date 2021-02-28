@@ -1,11 +1,9 @@
-import matplotlib.pyplot as plt
 import numpy as np
-from scipy.signal import hilbert
+from scipy.stats import kurtosis
+import matplotlib.pyplot as plt
 
 from mne.viz.topomap import _plot_ica_topomap
-from mne.filter import filter_data
 from mne.time_frequency import psd_array_welch
-from scipy.stats import kurtosis
 
 
 def plot_extended(S, sfreq, f_scale, powers, ica_mne, sort=True,
@@ -123,5 +121,5 @@ def plot_extended(S, sfreq, f_scale, powers, ica_mne, sort=True,
                 axe[ax_idx + 1].set_title('Topo')
         if save is not None:
             plt.savefig('%s_%d.%s' % (save, i, extension))
+
     plt.show()
-    return None

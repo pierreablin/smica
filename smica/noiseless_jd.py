@@ -1,8 +1,9 @@
 import numpy as np
 
 from sklearn.utils import check_random_state
-from mne.io import BaseRaw
 from joblib import Memory
+
+from mne.io import BaseRaw
 
 from qndiag import qndiag
 
@@ -73,11 +74,6 @@ class JDIAG(SMICA):
         self.powers_ = self.powers_ / scale
         self.sigmas_ = np.zeros((C.shape[0], X.shape[0]))
         return self
-
-    def compute_sources(self, X=None, method='pinv'):
-        if method == 'wiener':
-            raise ValueError('Only method=pinv is implemented for JDIAG')
-        return super().compute_sources(X=X, method=method)
 
     def compute_sources(self, X=None, method='pinv'):
         if method == 'wiener':

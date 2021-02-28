@@ -1,17 +1,20 @@
+"""
+XXX
+============================
+
+"""
+
 import numpy as np
 from os import path as op
 import matplotlib.pyplot as plt
-from smica import ICA, transfer_to_ica, SOBI_mne, JDIAG_mne, dipolarity
+
 import mne
-
 from mne.preprocessing import ICA as ICA_mne
-
-from mne.datasets import multimodal, sample
+from mne.datasets import sample
 
 from picard import picard
 
-from sklearn.decomposition import fastica
-
+from smica import ICA, transfer_to_ica, JDIAG_mne, dipolarity
 
 # raw_fname = os.path.join(multimodal.data_path(), 'multimodal_raw.fif')
 n_bins = 40

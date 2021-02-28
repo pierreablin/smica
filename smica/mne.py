@@ -1,21 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from scipy.signal import hilbert
+from sklearn.utils import check_random_state
 
-import mne
+# import mne
 from mne.preprocessing import ICA as ICA_
 from mne.io.pick import pick_info
-from sklearn.utils import check_random_state
-from sklearn.cluster import AgglomerativeClustering
 from mne.io import BaseRaw
-from mne.epochs import BaseEpochs
-from mne.viz.topomap import _plot_ica_topomap
+# from mne.viz import plot_topomap
 
-from mne.viz import plot_topomap
 from .core_smica import SMICA
 from .core_smican import SMICAN
-from .utils import fourier_sampling, itakura, loss
+from .utils import fourier_sampling
 from .dipolarity import dipolarity_using_sphere_model
 from .viz import plot_extended
 from .mutual_info import mutual_information_2d
@@ -263,11 +259,13 @@ class ICA(object):
                       self.sfreq, self.f_scale,
                       self.powers, self.ica_mne, **kwargs)
 
-    def plot_noise_topo(self, pick_types='mag'):
-        picks = mne.pick_types(self.info, meg=pick_types)
-        f, axes = plt.subplots(2, 5)
-        powers = np.sqrt(self.sigmas) * self.normalization
-        for j, ax in enumerate(axes.ravel()):
-            f_idx = int(len(self.freqs) / 10)
-            power = powers[f_idx, picks]
-            plot_topomap()
+    # XXX
+    # def plot_noise_topo(self, pick_types='mag'):
+    #     picks = mne.pick_types(self.info, meg=pick_types)
+    #     f, axes = plt.subplots(2, 5)
+    #     powers = np.sqrt(self.sigmas) * self.normalization
+    #     for j, ax in enumerate(axes.ravel()):
+    #         f_idx = int(len(self.freqs) / 10)
+    #         power = powers[f_idx, picks]
+    #         # XXX you don't use power???
+    #         plot_topomap()

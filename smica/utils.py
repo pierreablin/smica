@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def loss(covs, A, sigma, source_powers, avg_noise=True, corr=False,
@@ -33,13 +32,13 @@ def fourier_sampling(X, sfreq, freqs, window=False):
     frequencies specified by freqs.
     '''
     p, n = X.shape
-    f_max = freqs[-1]
-    f_min = freqs[0]
+    # f_max = freqs[-1]
+    # f_min = freqs[0]
     freq_idx = n * freqs / sfreq
     freq_idx = freq_idx.astype(int)
-    n_f_max = int(n * f_max / sfreq)
-    n_f_min = int(n * f_min / sfreq)
-    n_f = n_f_max - n_f_min
+    # n_f_max = int(n * f_max / sfreq)
+    # n_f_min = int(n * f_min / sfreq)
+    # n_f = n_f_max - n_f_min
     n_bins = len(freqs) - 1
     if window:
         win = np.hanning(n)

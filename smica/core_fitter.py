@@ -3,6 +3,9 @@ API for the core fitter algorithm : fit the model to a sequence of covariances
 """
 import numpy as np
 
+from scipy.linalg import sqrtm
+from scipy.optimize import fmin_l_bfgs_b
+
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.utils import check_random_state
 
@@ -12,9 +15,6 @@ from ._em import em_algo
 from ._lbfgs import lbfgs
 from ._lbfgs_noise import lbfgs_noise
 from .utils import loss, compute_covariances
-from scipy.linalg import sqrtm
-from scipy.optimize import fmin_l_bfgs_b
-from scipy.io import savemat
 
 
 def lbfgs_solver(P, q):
@@ -146,10 +146,11 @@ class CovarianceFit(BaseEstimator, TransformerMixin):
                 self.sigmas_ = (np.ones(n_samples)[:, None] *
                                 sigmas[None, :])
         else:
-            if target_ica.avg_noise:
-                self.sigmas_ = np.copy(sigmas)
-            else:
-                self.sigmas_ = np.means(sigmas, axis=0)
+            1/0  # XXX !!!
+            # if target_ica.avg_noise:
+            #     self.sigmas_ = np.copy(sigmas)
+            # else:
+            #     self.sigmas_ = np.means(sigmas, axis=0)
         self.initialized = True
         return self
 

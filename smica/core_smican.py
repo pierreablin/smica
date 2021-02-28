@@ -1,10 +1,9 @@
 import numpy as np
 
 from sklearn.utils import check_random_state
-from sklearn.cluster import AgglomerativeClustering
 
 from .core_fitter import CovarianceFitNoise
-from .utils import fourier_sampling, itakura, loss
+from .utils import fourier_sampling, itakura
 
 eps = 1e-12
 
@@ -68,12 +67,13 @@ class SMICAN(object):
         self.IS_ = IS
         return IS
 
-    def compute_approx_covs(self):
-        '''
-        Compute the covariances estimated by the model
-        '''
-        covs_approx = compute_covariances(self.A_, self.powers_, self.C_noise)
-        return covs_approx
+    # def compute_approx_covs(self):
+    #     '''
+    #     Compute the covariances estimated by the model
+    #     '''
+    #     covs_approx = compute_covariances(self.A_, self.powers_,
+    #                                       self.C_noise)
+    #     return covs_approx
 
     def compute_f_div(self, halve=False):
         f = np.zeros((self.n_components, self.n_components))

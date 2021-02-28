@@ -1,7 +1,6 @@
 from __future__ import division
 import os
 import mne
-from mne.preprocessing import ICA
 from mne.transforms import (read_trans, apply_trans, _get_trans)
 from mne.utils import get_subjects_dir
 from mne.surface import read_surface

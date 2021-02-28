@@ -1,10 +1,14 @@
+"""
+XXX
+============================
+
+"""
+
 import numpy as np
-import matplotlib.pyplot as plt
-from smica import ICA, mutual_information_2d, JDIAG_mne, SOBI_mne, transfer_to_ica
+from smica import ICA, JDIAG_mne, SOBI_mne, transfer_to_ica
 import mne
 from mne.datasets import sample
 from mne.preprocessing import ICA as ICA_mne
-from picard import picard
 
 from joblib import Memory
 
@@ -62,11 +66,13 @@ to_plot_sobi = [2, 0, 8, 12, 20, 31, 3, 17, 9, 10]
 ifmx_ = ICA_mne(n_comp, random_state=0).fit(raw, picks=picks)
 ifmx = transfer_to_ica(raw, picks, freqs, ifmx_.get_sources(raw).get_data(),
                        ifmx_.get_components())
-to_plot_ifmx = [1, 2, 0, 35, 33, 19, 3, 32, 25,  9]
+to_plot_ifmx = [1, 2, 0, 35, 33, 19, 3, 32, 25, 9]
 plot_args = dict(number=True, t_min=2, t_max=4)
 
-pow_lims = [(np.min(algo.powers), np.max(algo.powers)) for algo in [smica, jdiag, sobi, ifmx]]
+pow_lims = [(np.min(algo.powers), np.max(algo.powers))
+            for algo in [smica, jdiag, sobi, ifmx]]
 y_lim = 0.0001, 0.21
+
 for algo, sort, method, name in zip([smica, jdiag, sobi, ifmx],
                                     [to_plot_smica, to_plot_jdiag,
                                      to_plot_sobi, to_plot_ifmx],
