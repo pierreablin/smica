@@ -1,5 +1,8 @@
 # Spectral Matching Independent Component Analysis
 
+![Build](https://github.com/pierreablin/smica/workflows/tests/badge.svg)
+![Codecov](https://codecov.io/gh/pierreablin/smica/branch/master/graph/badge.svg)
+
 This repository contains the python code for the Spectral Matching Independent Component Analysis (SMICA) algorithm.
 
 It contains three main functions:
