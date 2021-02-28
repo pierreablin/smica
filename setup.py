@@ -41,7 +41,7 @@ if __name__ == "__main__":
               'scipy >=0.18.1',
               'joblib',
               'mne',
-              'https://github.com/pierreablin/qndiag/archive/master.zip',
+              'qndiag',
           ],
           classifiers=[
               'Intended Audience :: Science/Research',
