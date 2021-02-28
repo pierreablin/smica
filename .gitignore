@@ -112,3 +112,12 @@ venv.bak/
 # Notebooks
 
 *.ipynb
+
+junit-results.xml
+
+_build
+auto_examples
+gen_modules
+generated
+
+*.pdf

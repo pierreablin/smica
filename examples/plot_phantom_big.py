@@ -1,4 +1,9 @@
-import os.path as op
+"""
+XXX
+============================
+
+"""
+
 import numpy as np
 import socket
 
@@ -6,10 +11,10 @@ import mne
 from mne import find_events, fit_dipole
 from mne.datasets.brainstorm import bst_phantom_elekta
 from mne.io import read_raw_fif
-from smica import ICA, transfer_to_ica, JDIAG_mne
+from smica import ICA, JDIAG_mne
 from mne.preprocessing import maxwell_filter
 from mne.preprocessing import ICA as ICA_mne
-from joblib import Parallel, delayed, Memory
+from joblib import Memory
 
 
 location = './cachedir'

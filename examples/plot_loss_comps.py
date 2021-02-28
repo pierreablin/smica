@@ -1,5 +1,10 @@
+"""
+XXX
+============================
+
+"""
+
 import numpy as np
-import os
 import matplotlib.pyplot as plt
 from smica import ICA
 import mne

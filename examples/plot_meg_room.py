@@ -1,8 +1,14 @@
+"""
+XXX
+============================
+
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
-from smica import ICA, JDIAG_mne, SOBI_mne
 import mne
 from mne.datasets import sample
+from smica import ICA, JDIAG_mne, SOBI_mne
 
 # fetch data
 data_path = sample.data_path()

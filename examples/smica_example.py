@@ -1,3 +1,8 @@
+"""
+Simple SMICA Example
+====================
+
+"""
 import numpy as np
 
 from smica import SMICA

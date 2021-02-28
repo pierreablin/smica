@@ -1,8 +1,9 @@
 import numpy as np
 
 from sklearn.utils import check_random_state
-from mne.io import BaseRaw
 from joblib import Memory
+
+from mne.io import BaseRaw
 
 from qndiag import qndiag
 

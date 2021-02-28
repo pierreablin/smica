@@ -2,8 +2,6 @@ import warnings
 
 import numpy as np
 from numba import njit
-from numpy.linalg import norm
-
 from joblib import Memory
 
 from .utils import loss, compute_covariances
@@ -184,7 +182,6 @@ def em_algo(covs, A, sigmas_square, source_powers, corr, avg_noise,
     '''
     EM algorithm to fit the SMICA model on the covariances matrices covs
     '''
-    use_joblib = n_jobs > 1
     n_sensors, n_sources = A.shape
     n_mat, _, _ = covs.shape
     covs_inv = np.array([np.linalg.inv(cov) for cov in covs])
@@ -249,6 +246,7 @@ def em_algo(covs, A, sigmas_square, source_powers, corr, avg_noise,
             loss_old = loss_value
             if criterion < tol and it > n_it_min:
                 break
+
         if verbose:
             if (it - 1) % verbose == 0 and it > 0:
                 loss_print = loss(covs, A, sigmas_square, source_powers,
@@ -256,9 +254,7 @@ def em_algo(covs, A, sigmas_square, source_powers, corr, avg_noise,
                                   corr)
                 print('it {:5d}, loss: {:10.5e}, crit: {:04.2e}'.format(
                         it, loss_print, criterion))
-        A_old = A.copy()
-        sigmas_old = sigmas_square.copy()
-        powers_old = source_powers.copy()
+
     else:
         warnings.warn('Warning, em algorithm did not converge: '
                       'criterion %.2e' % criterion)

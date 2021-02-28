@@ -1,3 +1,8 @@
+"""
+Simple CovarianceFit Example
+============================
+
+"""
 import numpy as np
 
 from smica import CovarianceFit

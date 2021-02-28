@@ -1,11 +1,17 @@
+"""
+XXX
+============================
+
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
-from smica import ICA, transfer_to_ica, SOBI_mne, JDIAG_mne
+
 import mne
-
 from mne.preprocessing import ICA as ICA_mne
-
 from mne.datasets import sample
+
+from smica import ICA, transfer_to_ica, SOBI_mne, JDIAG_mne
 
 rc = {"pdf.fonttype": 42, 'text.usetex': True, 'font.size': 14,
       'xtick.labelsize': 12, 'ytick.labelsize': 12, 'text.latex.preview': True}

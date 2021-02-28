@@ -1,20 +1,17 @@
+"""
+XXX
+============================
+
+"""
 import numpy as np
 
 import matplotlib.pyplot as plt
-from sklearn.pipeline import Pipeline
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.model_selection import ShuffleSplit, cross_val_score
-from sklearn.feature_selection import SelectKBest
 
 from mne import Epochs, pick_types, events_from_annotations
-from mne.channels import read_layout
 from mne.io import concatenate_raws, read_raw_edf
 from mne.datasets import eegbci
-from mne.decoding import CSP
 
 from smica import ICA
-import pickle
-
 
 tmin, tmax = -1., 4.
 

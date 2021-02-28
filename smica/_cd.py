@@ -1,10 +1,6 @@
-import numpy as np
 import warnings
 
 import numpy as np
-from numpy.linalg import norm
-
-from joblib import Memory
 
 from .utils import loss, compute_covariances
 
