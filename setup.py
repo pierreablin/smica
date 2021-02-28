@@ -44,6 +44,7 @@ if __name__ == "__main__":
               'qndiag',
               'scikit-learn',
               'numba',
+              'matplotlib',
           ],
           classifiers=[
               'Intended Audience :: Science/Research',
