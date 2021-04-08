@@ -56,11 +56,8 @@ Cite
    [1] Ablin, Pierre, Jean-François Cardoso, and Alexandre Gramfort.
    "Spectral independent component analysis with noise modeling for M/EEG source separation."
    Journal of Neuroscience Methods (2021): 109144.
-
-
-Arxiv
------
-https://arxiv.org/abs/2008.09693
+   https://www.sciencedirect.com/science/article/abs/pii/S0165027021000790
+   ArXiv : https://arxiv.org/abs/2008.09693
 
 
 API
