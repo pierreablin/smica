@@ -53,9 +53,15 @@ Use the `github issue tracker <https://github.com/pierreablin/smica/issues>`_ to
 Cite
 ----
 
-   [1] Pierre Ablin, Jean-Francois Cardoso, and Alexandre Gramfort
-   "Spectral independent component analysis with noise modeling for M/EEG source separation"
-   ArXiv Preprint https://arxiv.org/abs/2008.09693
+   [1] Ablin, Pierre, Jean-François Cardoso, and Alexandre Gramfort.
+   "Spectral independent component analysis with noise modeling for M/EEG source separation."
+   Journal of Neuroscience Methods (2021): 109144.
+
+
+Arxiv
+-----
+https://arxiv.org/abs/2008.09693
+
 
 API
 ---
